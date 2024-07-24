@@ -1,5 +1,5 @@
 # Import necessary modules
-from .architecture import AdvancedMemoryProcessingLayer, ComplexDecisionMakingComponent
+import numpy as np
 
 class NextGenJaxModel:
     def __init__(self):
@@ -42,7 +42,7 @@ class AdvancedMemoryProcessingLayer:
         processed_data = []
         for cell in self.memory_cells:
             processed_data.append(cell.process(input_data))
-        return processed_data
+        return np.array(processed_data)
 
 # Define the complex decision making component
 class ComplexDecisionMakingComponent:
@@ -67,5 +67,5 @@ class ReasoningEngine:
     def decide(self, processed_data):
         # Implement actual reasoning and decision-making logic
         # Example: Apply a decision-making algorithm to the processed data
-        decisions = processed_data.sum(axis=0)  # Placeholder for actual logic
+        decisions = np.sum(processed_data, axis=0)  # Placeholder for actual logic
         return decisions
