@@ -1,0 +1,18 @@
+numpy
+
+# The following are custom modules and do not exist as installable packages on PyPI.
+# Instead, they represent components to be developed within the NextGenJax project.
+# pmap - Parallel mapping module
+# tree_map - Tree mapping module
+# jit - Just-In-Time compilation module
+# grad - Gradient computation module
+# random - Random operations module
+# benchmarks - Benchmarking module
+# building_mechanisms - Module for building mechanisms
+# reinforcement_learning - Reinforcement learning module
+# learning_networking_module - Learning and networking module
+# 3d_preprocessing_utils - 3D preprocessing utilities
+# media_conversion - Media conversion module
+# aliases - Module for managing aliases of components
+# advanced_reasoning_module - Advanced reasoning module
+# nextgenjax_integration - Integration module for NextGenJax

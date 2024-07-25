@@ -1,9 +1,13 @@
-import nextgenjax
-import nextgenjax.numpy as jnp
-from nextgenjax import random, grad, jit, tree_map, pmap
-from typing import List, Tuple, Callable, Dict, Any
-import networkx as nx  # Make sure to install networkx: pip install networkx
 import nextgenjax as nnp
+import nextgenjax.numpy as jnp
+from typing import List, Tuple, Callable, Dict, Any
+
+try:
+    import networkx as nx  # Make sure to install networkx: pip install networkx
+except ImportError:
+    raise ImportError("The networkx library is required for this module. Please install it using 'pip install networkx'.")
+
+
 
 class NextGenJaxModel:
     def __init__(self):
@@ -21,8 +25,8 @@ class NextGenJaxModel:
         # Inspired by Flax's neural network API
         class Layer:
             def __init__(self, in_dim: int, out_dim: int):
-                self.weights = random.normal(random.PRNGKey(0), (in_dim, out_dim))
-                self.bias = random.normal(random.PRNGKey(1), (out_dim,))
+                self.weights = nnp.random.normal(nnp.random.PRNGKey(0), (in_dim, out_dim))
+                self.bias = nnp.random.normal(nnp.random.PRNGKey(1), (out_dim,))
 
             def __call__(self, x):
                 return jnp.dot(x, self.weights) + self.bias
@@ -33,17 +37,17 @@ class NextGenJaxModel:
 
             def __call__(self, x):
                 for layer in self.layers:
-                    x = nextgenjax.nn.relu(layer(x))
+                    x = nnp.nn.relu(layer(x))
                 return x
 
-            @jit
+            @nnp.jit
             def train_step(self, x, y, learning_rate=0.01):
                 def loss_fn(params, x, y):
                     pred = self(x)
                     return jnp.mean((pred - y) ** 2)
 
-                grads = grad(loss_fn)(self.layers, x, y)
-                self.layers = tree_map(lambda p, g: p - learning_rate * g, self.layers, grads)
+                grads = nnp.grad(loss_fn)(self.layers, x, y)
+                self.layers = nnp.tree_map(lambda p, g: p - learning_rate * g, self.layers, grads)
 
         return AdvancedNeuralNetwork([64, 128, 64, 32])  # Example architecture
 
@@ -68,7 +72,7 @@ class NextGenJaxModel:
                 # Simple optimization: topological sort for execution order
                 return list(nx.topological_sort(self.graph))
 
-            @jit
+            @nnp.jit
             def execute(self, inputs: Dict[int, jnp.ndarray]):
                 execution_order = self.optimize()
                 results = inputs.copy()
@@ -86,10 +90,10 @@ class NextGenJaxModel:
         # Inspired by RouteLL's language routing capabilities
         class LanguageRouter:
             def __init__(self, num_languages: int, embedding_dim: int):
-                self.language_embeddings = random.normal(random.PRNGKey(0), (num_languages, embedding_dim))
+                self.language_embeddings = nnp.random.normal(nnp.random.PRNGKey(0), (num_languages, embedding_dim))
                 self.routing_network = self.AIPhoenix_NeuralFramework()
 
-            @jit
+            @nnp.jit
             def route(self, input_text: str, language_id: int):
                 # Simplified text embedding (in practice, use a proper text encoder)
                 text_embedding = jnp.mean(jnp.array([ord(c) for c in input_text]))

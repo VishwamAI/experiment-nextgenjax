@@ -7,10 +7,8 @@ from .aliases import nnp, npf, agb, alr, acl, aes, aok, ast, adt
 import nextgenjax as nnp
 
 # Import specific functionalities for direct access
-from nextgenjax import random, grad, jit, tree_map
-
-# Define aliases for components to enable the requested import syntax
-random = nnp.random
-grad = nnp.grad
-jit = nnp.jit
-tree_map = nnp.tree_map
+from .random import random
+from .grad import grad
+from .jit import jit
+from .tree_map import tree_map
+from .pmap import pmap
