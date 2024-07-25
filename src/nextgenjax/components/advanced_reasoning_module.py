@@ -1,13 +1,13 @@
 # Advanced Reasoning Module for NextGenJax
 
-import nextgenjax
-import nextgenjax.numpy as jnp
+import nnp
+import nnp.numpy as jnp
 import chex
-from nextgenjax import random, grad, jit
+from nnp import random, grad, jit
 from etils import epy
 import absl_py as absl
 import numpy as np
-import optax
+import aok
 
 # Custom implementation inspired by graph neural networks and attention mechanisms
 class AdvancedReasoningComponent:
@@ -24,7 +24,7 @@ class AdvancedReasoningComponent:
                 'W_v': random.normal(key, (input_dim, hidden_dim))
             }
         }
-        self.optimizer = optax.adam(learning_rate)
+        self.optimizer = aok.adam(learning_rate)
         self.opt_state = self.optimizer.init(self.params)
 
     def graph_network(self, graph_data):
@@ -33,7 +33,7 @@ class AdvancedReasoningComponent:
             # Aggregate messages from neighbors
             aggregated_messages = jnp.matmul(adjacency_matrix, node_features * edge_features)
             # Update node features based on messages and trainable parameters
-            updated_node_features = nextgenjax.nn.relu(jnp.matmul(aggregated_messages, params['W']) + params['b'])
+            updated_node_features = nnp.nn.relu(jnp.matmul(aggregated_messages, params['W']) + params['b'])
             return updated_node_features
 
         # Apply the message passing function to the graph data
@@ -52,7 +52,7 @@ class AdvancedReasoningComponent:
             # Calculate attention scores
             scores = jnp.matmul(q, k.T) / jnp.sqrt(k.shape[-1])
             # Apply softmax to get attention weights
-            weights = nextgenjax.nn.softmax(scores, axis=-1)
+            weights = nnp.nn.softmax(scores, axis=-1)
             # Weighted sum of values
             output = jnp.matmul(weights, v)
             return output
@@ -75,9 +75,9 @@ class AdvancedReasoningComponent:
 
     @jit
     def update(self, params, opt_state, x, y):
-        loss, grads = nextgenjax.value_and_grad(self.loss)(params, x, y)
+        loss, grads = nnp.value_and_grad(self.loss)(params, x, y)
         updates, new_opt_state = self.optimizer.update(grads, opt_state)
-        new_params = optax.apply_updates(params, updates)
+        new_params = aok.apply_updates(params, updates)
         return new_params, new_opt_state, loss
 
     def train_step(self, x, y):

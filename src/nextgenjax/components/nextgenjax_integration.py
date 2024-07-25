@@ -2,7 +2,7 @@
 
 import absl_py as absl
 import chex
-import nextgenjax
+import nextgenjax as nnp
 import nextgenjax.numpy as jnp
 import etils.epy as epy
 
@@ -14,15 +14,15 @@ class NextGenJaxOptimizer:
 
     def grad(self, loss_fn, params):
         # Compute the gradient for a given loss function and parameters
-        return nextgenjax.grad(loss_fn)(params)
+        return nnp.grad(loss_fn)(params)
 
     def jit(self, fn, *args, **kwargs):
         # Just-In-Time compile the given function
-        return nextgenjax.jit(fn, *args, **kwargs)
+        return nnp.jit(fn, *args, **kwargs)
 
     def tree_map(self, fn, tree):
         # Apply a function to each element in a nested structure
-        return nextgenjax.tree_map(fn, tree)
+        return nnp.tree_map(fn, tree)
 
     # Additional advanced features can be added here
 
