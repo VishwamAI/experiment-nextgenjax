@@ -1,71 +1,67 @@
-# Import necessary modules
-import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, LSTM, Dense, Conv2D, MaxPooling2D, Flatten, Concatenate
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.utils import to_categorical
 
-class NextGenJaxModel:
-    def __init__(self):
-        # Initialize the advanced memory processing layer
-        self.memory_processing_layer = AdvancedMemoryProcessingLayer()
+class NextGenJaxModel(Model):
+    def __init__(self, vocab_size, max_sequence_length=100, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.vocab_size = vocab_size
+        self.max_sequence_length = max_sequence_length
+        self.tokenizer = Tokenizer(num_words=self.vocab_size, filters='')
+        self.tokenizer.fit_on_texts([' '.join([str(i) for i in range(vocab_size)])])
 
-        # Initialize the complex decision making component
-        self.decision_making_component = ComplexDecisionMakingComponent()
+        # Input layers
+        text_input = Input(shape=(self.max_sequence_length, self.vocab_size))
+        voice_input = Input(shape=(128, 128, 1))  # Specify a fixed shape for voice input
 
-    def forward(self, input_data):
-        # Process the input data through the advanced memory processing layer
-        processed_data = self.memory_processing_layer.process(input_data)
+        # Text processing branch
+        x_text = LSTM(units=64, return_sequences=True)(text_input)
+        x_text = LSTM(units=64)(x_text)
+        x_text = Flatten()(x_text)  # Add Flatten layer
 
-        # Make decisions based on the processed data using the complex decision making component
-        decisions = self.decision_making_component.make_decisions(processed_data)
+        # Voice processing branch
+        x_voice = Conv2D(32, kernel_size=(3, 3), activation='relu')(voice_input)
+        x_voice = MaxPooling2D(pool_size=(2, 2))(x_voice)
+        x_voice = Flatten()(x_voice)
 
-        return decisions
+        # Combine branches
+        combined = Concatenate()([x_text, x_voice])
+        combined = Flatten()(combined)  # Ensure fully-defined shape
 
-    # Placeholder methods for future implementation
-    def train(self, training_data):
-        pass
+        # Common output layer
+        output = Dense(units=self.vocab_size, activation='softmax', input_shape=(None,))(combined)
 
-    def evaluate(self, evaluation_data):
-        pass
+        self.model = Model(inputs=[text_input, voice_input], outputs=output)
 
-    def save_model(self, file_path):
-        pass
+    def call(self, inputs):
+        return self.model(inputs)
 
-    def load_model(self, file_path):
-        pass
+    def text_to_text(self, input_text):
+        sequences = self.tokenizer.texts_to_sequences([input_text])
+        padded_sequences = pad_sequences(sequences, maxlen=self.max_sequence_length, padding='post', truncating='post')
+        one_hot_sequences = to_categorical(padded_sequences, num_classes=self.vocab_size)
+        # Create a dummy voice input (all zeros) since the model expects both inputs
+        dummy_voice_input = tf.zeros((1, 128, 128, 1))  # Updated shape
+        predictions = self.model.predict([one_hot_sequences, dummy_voice_input])
+        output_indices = predictions.argmax(axis=-1)
+        output_text = self.tokenizer.sequences_to_texts(output_indices)[0]
+        return output_text
 
-# Define the advanced memory processing layer
-class AdvancedMemoryProcessingLayer:
-    def __init__(self):
-        # Initialize components for advanced memory processing
-        self.memory_cells = [MemoryCell() for _ in range(10)]  # Example initialization
+    def voice_to_text(self, voice_input):
+        # Ensure voice_input has the correct shape (1, 128, 128, 1)
+        voice_input = tf.ensure_shape(voice_input, (1, 128, 128, 1))
+        dummy_text_input = tf.zeros((1, self.max_sequence_length, self.vocab_size))
+        predictions = self.model.predict([dummy_text_input, voice_input])
+        output_indices = predictions.argmax(axis=-1)
+        output_text = self.tokenizer.sequences_to_texts(output_indices)[0]
+        return output_text
 
-    def process(self, input_data):
-        # Process the input data and return the processed data
-        processed_data = []
-        for cell in self.memory_cells:
-            processed_data.append(cell.process(input_data))
-        return np.array(processed_data)
+# Instantiate the model with a defined vocabulary size
+vocab_size = 10000  # This should be set based on the actual vocabulary size
+nextgenjax_model = NextGenJaxModel(vocab_size=vocab_size)
 
-# Define the complex decision making component
-class ComplexDecisionMakingComponent:
-    def __init__(self):
-        # Initialize components for complex decision making
-        self.reasoning_engine = ReasoningEngine()  # Example initialization
-
-    def make_decisions(self, processed_data):
-        # Make and return decisions based on processed data
-        decisions = self.reasoning_engine.decide(processed_data)
-        return decisions
-
-# Example classes for MemoryCell and ReasoningEngine
-class MemoryCell:
-    def process(self, input_data):
-        # Implement actual memory cell processing logic
-        # Example: Apply a transformation to the input data
-        processed_data = input_data * 2  # Placeholder for actual logic
-        return processed_data
-
-class ReasoningEngine:
-    def decide(self, processed_data):
-        # Implement actual reasoning and decision-making logic
-        # Example: Apply a decision-making algorithm to the processed data
-        decisions = np.sum(processed_data, axis=0)  # Placeholder for actual logic
-        return decisions
+# Save the updated model architecture
+nextgenjax_model.model.save('nextgenjax_model.keras')
