@@ -1,3 +1,7 @@
+from typing import List, Tuple, Callable, Dict, Any
+from nextgenjax.aliases import npf, agb, alr, acl, aes, aok, ast, adt
+from nextgenjax import tree_map, pmap
+
 # Custom numpy-like module for NextGenJax
 class NextGenJaxNumpy:
     def __init__(self):
@@ -66,9 +70,6 @@ class NextGenJaxNumpy:
 # Create an instance of NextGenJaxNumpy
 nnp = NextGenJaxNumpy()
 
-from typing import List, Tuple, Callable, Dict, Any
-from nextgenjax.aliases import npf, agb, alr, acl, aes, aok, ast, adt
-from nextgenjax import tree_map, pmap
 
 def custom_jit(func):
     def wrapper(*args, **kwargs):
