@@ -1,4 +1,15 @@
-# Custom numpy-like module for NextGenJax
+# Import NextGenJax and its custom numpy-like module
+import nextgenjax as nnp
+from nextgenjax import numpy as jnp
+# Import SciPy and Matplotlib for advanced scientific computing and visualization capabilities
+import scipy as sp
+import matplotlib.pyplot as plt
+# Import custom modules
+from grad.grad import grad
+from jit.jit import jit
+from pmap.pmap import pmap
+from nextgenjax.tree_map import tree_map
+
 class NextGenJaxNumpy:
     def __init__(self):
         self.random = self.Random()
@@ -66,23 +77,161 @@ class NextGenJaxNumpy:
 # Create an instance of NextGenJaxNumpy
 nnp = NextGenJaxNumpy()
 
+# AutoDiff and Value classes for automatic differentiation
+class Value:
+    def __init__(self, data, _children=(), _op=''):
+        self.data = data
+        self.grad = 0
+        self._backward = lambda: None
+        self._prev = set(_children)
+        self._op = _op
+
+    def __repr__(self):
+        return f"Value(data={self.data}, grad={self.grad})"
+
+    def __add__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data + other.data, (self, other), '+')
+
+        def _backward():
+            self.grad += out.grad
+            other.grad += out.grad
+        out._backward = _backward
+
+        return out
+
+    def __mul__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data * other.data, (self, other), '*')
+
+        def _backward():
+            self.grad += other.data * out.grad
+            other.grad += self.data * out.grad
+        out._backward = _backward
+
+        return out
+
+    def __pow__(self, other):
+        assert isinstance(other, (int, float)), "only supporting int/float powers for now"
+        out = Value(self.data**other, (self,), f'**{other}')
+
+        def _backward():
+            self.grad += (other * self.data**(other-1)) * out.grad
+        out._backward = _backward
+
+        return out
+
+    def relu(self):
+        out = Value(0 if self.data < 0 else self.data, (self,), 'ReLU')
+
+        def _backward():
+            self.grad += (out.data > 0) * out.grad
+        out._backward = _backward
+
+        return out
+
+    def backward(self):
+        topo = []
+        visited = set()
+        def build_topo(v):
+            if v not in visited:
+                visited.add(v)
+                for child in v._prev:
+                    build_topo(child)
+                topo.append(v)
+        build_topo(self)
+
+        self.grad = 1
+        for node in reversed(topo):
+            node._backward()
+
+class AutoDiff:
+    @staticmethod
+    def grad(func):
+        def wrapper(*args, **kwargs):
+            # Wrap inputs in Value objects
+            inputs = [Value(arg) if isinstance(arg, (int, float)) else arg for arg in args]
+
+            # Forward pass
+            output = func(*inputs, **kwargs)
+
+            # Backward pass
+            output.backward()
+
+            # Extract gradients
+            return [arg.grad for arg in inputs]
+
+        return wrapper
+
 from typing import List, Tuple, Callable, Dict, Any
-from nextgenjax.aliases import npf, agb, alr, acl, aes, aok, ast, adt
-from nextgenjax import tree_map, pmap
+from grad.grad import grad
+from jit.jit import jit
+from pmap.pmap import pmap
+from nextgenjax.tree_map import tree_map
+import inspect
+from functools import wraps
+
+class JitCompiler:
+    def __init__(self):
+        self.cache = {}
+
+    def trace(self, func, *args, **kwargs):
+        # Enhanced tracing: record function calls, arguments, and their types
+        arg_types = [type(arg).__name__ for arg in args]
+        kwarg_types = {k: type(v).__name__ for k, v in kwargs.items()}
+        return f"Call: {func.__name__}(args={args}, arg_types={arg_types}, kwargs={kwargs}, kwarg_types={kwarg_types})"
+
+    def optimize(self, traced_ops):
+        # Enhanced optimization: remove duplicate operations and simplify constant expressions
+        unique_ops = list(dict.fromkeys(traced_ops))
+        # TODO: Implement constant folding and other optimizations
+        return unique_ops
+
+    def infer_types(self, func, *args, **kwargs):
+        # Basic type inference
+        sig = inspect.signature(func)
+        bound_args = sig.bind(*args, **kwargs)
+        type_hints = {}
+        for name, param in sig.parameters.items():
+            if name in bound_args.arguments:
+                type_hints[name] = type(bound_args.arguments[name])
+            elif param.annotation != inspect.Parameter.empty:
+                type_hints[name] = param.annotation
+        return type_hints
+
+    def compile(self, func, *args, **kwargs):
+        traced_ops = self.trace(func, *args, **kwargs)
+        optimized_ops = self.optimize(traced_ops)
+        type_hints = self.infer_types(func, *args, **kwargs)
+
+        def compiled_func(*args, **kwargs):
+            # Execute optimized operations
+            local_vars = {}
+            for op in optimized_ops:
+                try:
+                    exec(op, globals(), local_vars)
+                except Exception as e:
+                    raise RuntimeError(f"Error executing operation '{op}': {str(e)}")
+            return func(*args, **kwargs)
+
+        compiled_func.__annotations__ = type_hints
+        return compiled_func
 
 def custom_jit(func):
+    compiler = JitCompiler()
+
+    @wraps(func)
     def wrapper(*args, **kwargs):
-        # Placeholder for tracing logic
-        print(f"Tracing function: {func.__name__}")
-
-        # Placeholder for compilation logic
-        print(f"Compiling function: {func.__name__}")
-
-        # For now, just call the original function
-        result = func(*args, **kwargs)
-
-        print(f"Executed jit'd function: {func.__name__}")
-        return result
+        key = (func, tuple(map(type, args)), frozenset(kwargs.items()))
+        if key not in compiler.cache:
+            try:
+                compiled_func = compiler.compile(func, *args, **kwargs)
+                compiler.cache[key] = compiled_func
+            except Exception as e:
+                print(f"JIT compilation failed for {func.__name__}: {str(e)}")
+                print("Falling back to original function.")
+                return func(*args, **kwargs)
+        return compiler.cache[key](*args, **kwargs)
 
     return wrapper
 
@@ -99,16 +248,39 @@ def zeros(shape):
 nnp.relu = relu
 nnp.zeros = zeros
 
-# Networkx is an optional dependency for graph operations
-# If not installed, some graph operations may not work
-# pylint: disable=import-error
-try:
-    import networkx as nx
-except ImportError:
-    nx = None
-    print("Warning: networkx is not installed. Some graph operations may not work.")
-    print("To install networkx, run: pip install networkx")
-# pylint: enable=import-error
+# Custom minimal graph implementation for NextGenJax
+class MinimalDiGraph:
+    def __init__(self):
+        self.nodes = {}
+        self.edges = {}
+
+    def add_node(self, node, **attr):
+        self.nodes[node] = attr
+
+    def add_edge(self, u, v):
+        if u not in self.edges:
+            self.edges[u] = set()
+        self.edges[u].add(v)
+
+    def topological_sort(self):
+        visited = set()
+        stack = []
+
+        def dfs(node):
+            visited.add(node)
+            if node in self.edges:
+                for neighbor in self.edges[node]:
+                    if neighbor not in visited:
+                        dfs(neighbor)
+            stack.append(node)
+
+        for node in self.nodes:
+            if node not in visited:
+                dfs(node)
+
+        return stack[::-1]
+
+nx = type('nx', (), {'DiGraph': MinimalDiGraph})
 
 
 
@@ -132,6 +304,24 @@ class NextGenJaxModel:
         # Build the model
         self.model = self.build_model()
 
+    def scientific_computation(self, data):
+        """
+        Perform scientific computations using SciPy.
+        """
+        # Example: Compute the Fourier Transform of the input data
+        return sp.fft.fft(data)
+
+    def visualize_data(self, data, title="Data Visualization"):
+        """
+        Visualize data using Matplotlib.
+        """
+        plt.figure(figsize=(10, 6))
+        plt.plot(data)
+        plt.title(title)
+        plt.xlabel("Index")
+        plt.ylabel("Value")
+        plt.grid(True)
+        plt.show()
     def AIPhoenix_NeuralFramework(self):
         # Inspired by Flax's neural network API
         class Input:
@@ -255,9 +445,9 @@ class NextGenJaxModel:
             def train_step(self, x, y, learning_rate=0.01):
                 def loss_fn(params, x, y):
                     pred = self(x)
-                    return nnp.numpy.mean((pred - y) ** 2)
+                    return nnp.mean((pred - y) ** 2)
 
-                grads = nnp.grad(loss_fn)(self.processing_layers, x, y)
+                grads = grad(loss_fn)(self.processing_layers, x, y)
                 self.processing_layers = nnp.tree_map(lambda p, g: p - learning_rate * g, self.processing_layers, grads)
 
         # Create and return an instance of AdvancedNeuralNetwork with predefined layers
@@ -583,4 +773,4 @@ class NextGenJaxModel:
     def process_input(self, input_3d, input_2d):
         return self.model([input_3d, input_2d])
 
-numpy = nnp  # Alias for compatibility with test scripts
+# Removed numpy alias and custom_grad function as they are not necessary for NextGenJax
