@@ -1,7 +1,7 @@
-from nextgenjax import NextGenJaxModel, nnp
-from nextgenjax.grad import grad
-from nextgenjax.jit import jit
-from nextgenjax.pmap import pmap
+from nextgenjax.nextgenjax_model import NextGenJaxModel, nnp
+from nextgenjax.grad.grad import grad
+from nextgenjax.jit.jit import jit
+from nextgenjax.pmap.pmap import pmap
 import scipy as sp
 import matplotlib.pyplot as plt
 import jaxlib
@@ -10,15 +10,28 @@ import jaxlib
 model = NextGenJaxModel()
 
 # Create a dummy input tensor for testing the 3D convolutional layers
-input_tensor_3d = nnp.random.normal((1, 64, 64, 64, 3))
+input_tensor_3d = nnp.random.normal(loc=0.0, scale=1.0, size=(1, 64, 64, 64, 3))
 # Create a dummy input tensor for testing the 2D convolutional layers
-input_tensor_2d = nnp.random.normal((1, 64, 64, 3))
+input_tensor_2d = nnp.random.normal(loc=0.0, scale=1.0, size=(1, 1, 64, 64, 3))
+
+# Print input shapes and model information
+print("Input tensor 2D shape:", input_tensor_2d.shape)
+print("Input tensor 3D shape:", input_tensor_3d.shape)
+print("Model num_classes:", model.num_classes)
 
 # Pass the input tensors through the model to test the convolutional layers
-output = model.process_input(input_tensor_2d, input_tensor_3d)
+try:
+    print("Calling process_input method...")
+    output = model.process_input(input_tensor_2d, input_tensor_3d)
+    print("process_input method completed successfully")
+except Exception as e:
+    print(f"Error in process_input method: {str(e)}")
+    raise
 
-# Print the output shape to verify the convolutional operations
-print('Output shape:', output.shape)
+if output is not None:
+    print("Output shape:", output.shape)
+else:
+    print("Output is None")
 
 # Test the grad module by defining a simple loss function and computing its gradient
 def loss_fn(params, inputs_2d, inputs_3d, targets):
@@ -26,7 +39,7 @@ def loss_fn(params, inputs_2d, inputs_3d, targets):
     return nnp.mean((predictions - targets) ** 2)
 
 # Create dummy targets tensor for testing the grad module
-targets_tensor = nnp.random.normal((1, model.num_classes))
+targets_tensor = nnp.random.normal(loc=0.0, scale=1.0, size=(1, model.num_classes))
 
 # Compute the gradients of the loss function with respect to the model parameters
 gradients = jit(grad(loss_fn))(model.get_params(), input_tensor_2d, input_tensor_3d, targets_tensor)

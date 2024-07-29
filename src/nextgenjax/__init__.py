@@ -1,17 +1,55 @@
-# This __init__.py will mimic the structure of JAX's __init__.py to align with the user's request for a JAX-like structure in NextGenJax.
+# NextGenJax __init__.py
 
-# Import core functionalities
-from .aliases import npf, agb, alr, acl, aes, aok, ast, adt
+from typing import List, Tuple, Callable, Dict, Any
 
-# Alias the package for simplified importing
-import nextgenjax as nnp
+# Import JAX functionalities
+import jax
+import jax.numpy as jnp
+from jax import grad, jit, vmap, pmap, random, lax
 
-# Import specific functionalities for direct access
-from .random import random
-from .grad.grad import grad
-from .jit.jit import jit
-from .tree_map import tree_map
-from .pmap.pmap import pmap
+# Import other libraries
+import haiku as hk
+import flax
+import fairscale
+import gym
+import whisper
+import langchain
+import optax
+import torch
+
+# NextGenJax aliases
+from .aliases import npf, alr, acl, aes, aok, ast, adt
+
+# NextGenJax core functionalities
+from .tree_util import tree_map
+from jax import pmap
+
+# NextGenJax plugins
+from .plugins.cuda_plugin import CudaPlugin
+from .plugins.nextgenjaxlib_plugin import NextGenJaxLib
+
+# Standard libraries
+import random as py_random
+import math
+
+# Import NextGenJaxModel
+from .nextgenjax_model import NextGenJaxModel
+
+# Define __all__ to specify what should be imported when using "from nextgenjax import *"
+__all__ = [
+    'List', 'Tuple', 'Callable', 'Dict', 'Any',
+    'jax', 'jnp', 'grad', 'jit', 'vmap', 'pmap', 'random', 'lax',
+    'hk', 'flax', 'fairscale', 'gym', 'whisper', 'langchain', 'optax', 'torch',
+    'npf', 'alr', 'acl', 'aes', 'aok', 'ast', 'adt',
+    'tree_map', 'pmap',
+    'CudaPlugin', 'NextGenJaxLib',
+    'py_random', 'math',
+    'NextGenJaxModel'
+]
+
+# Initialize plugins
+cuda_plugin = CudaPlugin()
+nextgenjaxlib_plugin = NextGenJaxLib()
 
 # Custom implementation of conv3d to replace JAX's version
 def conv3d(input, filter, strides, padding):
@@ -82,3 +120,5 @@ def conv3d(input, filter, strides, padding):
                         output[b, d, h, w, c] = np.sum(input_slice * filter_slice)
 
     return output
+
+# Set up any necessary configurations or initializations here
