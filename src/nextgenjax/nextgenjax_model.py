@@ -1,16 +1,10 @@
 from typing import List, Tuple, Callable, Dict, Any
-import nextgenjax as nnp
-from nextgenjax import numpy as jnp
 from nextgenjax.aliases import npf, alr, acl, aes, aok, ast, adt
 from nextgenjax import tree_map, pmap
 from nextgenjax.plugins.cuda_plugin import CudaPlugin
 from nextgenjax.plugins.nextgenjaxlib_plugin import NextGenJaxLib
 import random
 import math
-import scipy as sp
-import matplotlib.pyplot as plt
-from grad.grad import grad
-from jit.jit import jit
 
 # Custom minimal graph implementation to replace networkx
 class DiGraph:
@@ -55,13 +49,24 @@ class NextGenJaxNumpy:
                 raise ValueError(f"Unsupported data type: {type(data)}. Value: {data}")
 
         def __getitem__(self, key):
+            print(f"__getitem__ called with key: {key}")
+            print(f"Self data shape: {self._get_shape(self.data)}")
             if isinstance(key, tuple):
                 result = self.data
-                for k in key:
-                    result = result[k]
+                for i, k in enumerate(key):
+                    print(f"Indexing step {i}: key={k}, current result shape: {self._get_shape(result)}")
+                    try:
+                        result = result[k]
+                    except IndexError as e:
+                        print(f"IndexError at step {i}: {str(e)}")
+                        raise
                 return result
             else:
-                return self.data[key]
+                try:
+                    return self.data[key]
+                except IndexError as e:
+                    print(f"IndexError with single key {key}: {str(e)}")
+                    raise
 
         def __setitem__(self, key, value):
             if isinstance(key, tuple):
@@ -231,13 +236,13 @@ class NextGenJaxNumpy:
         print(f"Conv3D filter shape: {self.shape(filters)}")
         print(f"Conv3D strides: {strides}")
         print(f"Conv3D padding: {padding}")
-        print(f"Conv3D input content (first few elements): {input[:2, :2, :2, :2, :2]}")
-        print(f"Conv3D filters content (first few elements): {filters[:2, :2, :2, :2, :2]}")
 
         # Input shape: (batch, depth, height, width, in_channels)
         # Filters shape: (filter_depth, filter_height, filter_width, in_channels, out_channels)
 
-        # Ensure filters have 5 dimensions
+        # Ensure input and filters have correct dimensions
+        if len(self.shape(input)) != 5:
+            raise ValueError(f"Input must have 5 dimensions, but got {len(self.shape(input))}")
         if len(self.shape(filters)) != 5:
             raise ValueError(f"Filters must have 5 dimensions, but got {len(self.shape(filters))}")
 
@@ -250,10 +255,14 @@ class NextGenJaxNumpy:
 
         # Get shapes
         batch, in_depth, in_height, in_width, in_channels = self.shape(input)
-        filter_depth, filter_height, filter_width, in_channels, out_channels = self.shape(filters)
+        filter_depth, filter_height, filter_width, filter_in_channels, out_channels = self.shape(filters)
+
+        # Ensure input channels match
+        if in_channels != filter_in_channels:
+            raise ValueError(f"Input channels ({in_channels}) must match filter input channels ({filter_in_channels})")
 
         print(f"Input shape after padding: {self.shape(input)}")
-        print(f"Filter dimensions: {filter_depth}, {filter_height}, {filter_width}, {in_channels}, {out_channels}")
+        print(f"Filter dimensions: {filter_depth}, {filter_height}, {filter_width}, {filter_in_channels}, {out_channels}")
 
         # Calculate output shape
         out_depth = (in_depth - filter_depth) // strides[0] + 1
@@ -271,32 +280,63 @@ class NextGenJaxNumpy:
                 for h in range(out_height):
                     for w in range(out_width):
                         for c in range(out_channels):
+                            print(f"Current indices: b={b}, d={d}, h={h}, w={w}, c={c}")
+
                             d_start = d * strides[0]
                             h_start = h * strides[1]
                             w_start = w * strides[2]
-                            d_end = d_start + filter_depth
-                            h_end = h_start + filter_height
-                            w_end = w_start + filter_width
+                            d_end = min(d_start + filter_depth, in_depth)
+                            h_end = min(h_start + filter_height, in_height)
+                            w_end = min(w_start + filter_width, in_width)
 
-                            input_slice = input[b, d_start:d_end, h_start:h_end, w_start:w_end, :]
-                            filter_slice = filters[:, :, :, :, c]
+                            print(f"Slice indices: d={d_start}:{d_end}, h={h_start}:{h_end}, w={w_start}:{w_end}")
 
-                            input_slice = self.reshape(input_slice, (-1, self.shape(input_slice)[-1]))
-                            filter_slice = self.reshape(filter_slice, (-1, self.shape(filter_slice)[-1]))
+                            try:
+                                input_slice = input[b, d_start:d_end, h_start:h_end, w_start:w_end, :]
+                                filter_slice = filters[:, :, :, :, c]
+                            except IndexError as e:
+                                print(f"IndexError encountered: {str(e)}. Skipping this iteration.")
+                                continue
 
-                            print(f"Filter slice shape before transpose: {self.shape(filter_slice)}")
-                            if len(self.shape(filter_slice)) != 2:
-                                raise ValueError(f"Expected filter_slice to be 2D after reshaping, but got shape: {self.shape(filter_slice)}")
-                            filter_slice = self.transpose(filter_slice)
+                            print(f"Input slice shape: {self.shape(input_slice)}")
+                            print(f"Filter slice shape: {self.shape(filter_slice)}")
 
-                            print(f"Conv3D input_slice shape: {self.shape(input_slice)}")
-                            print(f"Conv3D filter_slice shape: {self.shape(filter_slice)}")
-                            print(f"Conv3D input_slice content: {input_slice}")
-                            print(f"Conv3D filter_slice content: {filter_slice}")
+                            # Check if slices are empty
+                            if 0 in self.shape(input_slice) or 0 in self.shape(filter_slice):
+                                print(f"Warning: Empty slice encountered. Skipping this iteration.")
+                                continue
 
-                            result = self.dot(input_slice, filter_slice)
-                            print(f"Conv3D dot result shape: {self.shape(result)}")
-                            print(f"Conv3D dot result content: {result}")
+                            try:
+                                input_slice_flat = self.reshape(input_slice, (-1, in_channels))
+                                filter_slice_flat = self.reshape(filter_slice, (-1, filter_in_channels))
+                            except Exception as e:
+                                print(f"Error during reshaping: {str(e)}")
+                                print(f"Input slice shape: {self.shape(input_slice)}")
+                                print(f"Filter slice shape: {self.shape(filter_slice)}")
+                                continue
+
+                            print(f"Reshaped input slice shape: {self.shape(input_slice_flat)}")
+                            print(f"Reshaped filter slice shape: {self.shape(filter_slice_flat)}")
+
+                            try:
+                                filter_slice_flat = self.transpose(filter_slice_flat)
+                            except Exception as e:
+                                print(f"Error during transpose: {str(e)}")
+                                print(f"Filter slice shape before transpose: {self.shape(filter_slice_flat)}")
+                                continue
+
+                            print(f"Input slice flat shape: {self.shape(input_slice_flat)}")
+                            print(f"Filter slice flat shape: {self.shape(filter_slice_flat)}")
+
+                            try:
+                                result = self.dot(input_slice_flat, filter_slice_flat)
+                            except Exception as e:
+                                print(f"Error during dot product: {str(e)}")
+                                print(f"Input slice shape: {self.shape(input_slice_flat)}")
+                                print(f"Filter slice shape: {self.shape(filter_slice_flat)}")
+                                continue
+
+                            print(f"Dot product result shape: {self.shape(result)}")
 
                             output[b, d, h, w, c] = self._sum(result)
 
@@ -395,24 +435,6 @@ class NextGenJaxNumpy:
         ] = array
         return padded
 
-    def _pad_3d(self, array, pad_width):
-        # Helper method to pad 3D arrays
-        padded = self.zeros((
-            self.shape(array)[0] + pad_width[0][0] + pad_width[0][1],
-            self.shape(array)[1] + pad_width[1][0] + pad_width[1][1],
-            self.shape(array)[2] + pad_width[2][0] + pad_width[2][1],
-            self.shape(array)[3] + pad_width[3][0] + pad_width[3][1],
-            self.shape(array)[4] + pad_width[4][0] + pad_width[4][1]
-        ))
-        padded[
-            pad_width[0][0]:self.shape(padded)[0]-pad_width[0][1],
-            pad_width[1][0]:self.shape(padded)[1]-pad_width[1][1],
-            pad_width[2][0]:self.shape(padded)[2]-pad_width[2][1],
-            pad_width[3][0]:self.shape(padded)[3]-pad_width[3][1],
-            pad_width[4][0]:self.shape(padded)[4]-pad_width[4][1]
-        ] = array
-        return padded
-
     @staticmethod
     def maximum(x, y):
         if isinstance(x, (int, float)) and isinstance(y, (int, float)):
@@ -459,25 +481,6 @@ class NextGenJaxModel:
     def to_device(self, tensor):
         # Use the NextGenJaxLib plugin to move tensor to the device
         return self.nextgenjaxlib.to_device(tensor)
-
-    def scientific_computation(self, data):
-        """
-        Perform scientific computations using SciPy.
-        """
-        # Example: Compute the Fourier Transform of the input data
-        return sp.fft.fft(data)
-
-    def visualize_data(self, data, title="Data Visualization"):
-        """
-        Visualize data using Matplotlib.
-        """
-        plt.figure(figsize=(10, 6))
-        plt.plot(data)
-        plt.title(title)
-        plt.xlabel("Index")
-        plt.ylabel("Value")
-        plt.grid(True)
-        plt.show()
 
     def AIPhoenix_NeuralFramework(self):
         # Inspired by Flax's neural network API

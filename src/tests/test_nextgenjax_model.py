@@ -1,14 +1,12 @@
 import unittest
 import tensorflow as tf
-from nextgenjax.model.nextgenjax_model import NextGenJaxModel
+from nextgenjax.nextgenjax_model import NextGenJaxModel
 
 class TestNextGenJaxModel(unittest.TestCase):
 
     def setUp(self):
-        # Initialize the NextGenJaxModel with a dummy vocabulary size
-        self.vocab_size = 10000
-        self.max_sequence_length = 100
-        self.model = NextGenJaxModel(vocab_size=self.vocab_size, max_sequence_length=self.max_sequence_length)
+        # Initialize the NextGenJaxModel
+        self.model = NextGenJaxModel()
 
     def test_text_to_text_conversion(self):
         # Test the text-to-text conversion capability
