@@ -1,8 +1,8 @@
 # AIPhoenix_OptimizerKit.py
-import nextgenjax
-import nextgenjax.numpy as jnp
+import jax
+import jax.numpy as jnp
 from typing import Any, Callable, Dict, List, Optional, Tuple
-from nextgenjax.tree_util import tree_map, tree_leaves
+from jax.tree_util import tree_map, tree_leaves
 
 class AIPhoenix_OptimizerKit:
     @staticmethod

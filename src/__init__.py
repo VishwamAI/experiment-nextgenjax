@@ -1,1 +1,2 @@
-from src.nextgenjax_model import NextGenJaxModel, nnp
+from src.jax_model import NextGenJaxModel
+import jax.numpy as jnp

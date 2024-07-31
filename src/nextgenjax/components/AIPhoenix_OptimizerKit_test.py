@@ -1,7 +1,11 @@
 import unittest
-from nextgenjax.components.AIPhoenix_OptimizerKit import AIPhoenix_OptimizerKit, random, grad, jit, tree_map
-import nextgenjax
-import nextgenjax.numpy as jnp
+from src.nextgenjax.components.AIPhoenix_OptimizerKit import AIPhoenix_OptimizerKit
+from src.nextgenjax.grad.grad import grad
+from src.nextgenjax.jit.jit import jit
+from src.nextgenjax import tree_map
+import random
+import jax.numpy as jnp
+import jax
 
 class TestAIPhoenixOptimizerKit(unittest.TestCase):
 
@@ -44,9 +48,9 @@ class TestAIPhoenixOptimizerKit(unittest.TestCase):
     def test_clip_by_global_norm(self):
         # Test the clip_by_global_norm function
         clip_fn = AIPhoenix_OptimizerKit.clip_by_global_norm(max_norm=1.0)
-        grads = nextgenjax.tree_util.tree_map(lambda x: jnp.array([x, x]), [0.5, 1.5, 2.5])
+        grads = jax.tree_util.tree_map(lambda x: jnp.array([x, x]), [0.5, 1.5, 2.5])
         clipped_grads = clip_fn(grads)
-        norms = nextgenjax.tree_util.tree_map(jnp.linalg.norm, clipped_grads)
+        norms = jax.tree_util.tree_map(jnp.linalg.norm, clipped_grads)
         for norm in norms:
             self.assertLessEqual(norm, 1.0)
 

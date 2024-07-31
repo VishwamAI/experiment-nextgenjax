@@ -1,7 +1,7 @@
 # Development Guide
 
 ## Introduction
-This development guide provides an overview of the development model for the `experiment-nextgenjax` project. It includes information on the branching strategy, code review process, continuous integration practices, local development setup, testing, deployment, and contributing guidelines.
+This development guide provides an overview of the development model for the `experiment-advancedjax` project. It includes information on the branching strategy, code review process, continuous integration practices, local development setup, testing, deployment, and contributing guidelines.
 
 ## Branching Strategy
 The project follows a feature branching model to manage code integration. The main branches are:
@@ -33,8 +33,8 @@ The project uses a CI/CD workflow to automate testing and ensure code quality. T
 To set up a local development environment, follow these steps:
 1. Clone the repository:
    ```
-   git clone https://github.com/VishwamAI/experiment-nextgenjax.git
-   cd experiment-nextgenjax
+   git clone https://github.com/VishwamAI/experiment-advancedjax.git
+   cd experiment-advancedjax
    ```
 2. Create a virtual environment and activate it:
    ```

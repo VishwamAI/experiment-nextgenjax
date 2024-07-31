@@ -1,10 +1,56 @@
 from typing import List, Tuple, Callable, Dict, Any
-from nextgenjax.aliases import npf, alr, acl, aes, aok, ast, adt
-from nextgenjax import tree_map, pmap
-from nextgenjax.plugins.cuda_plugin import CudaPlugin
-from nextgenjax.plugins.nextgenjaxlib_plugin import NextGenJaxLib
+import jax
+import jax.numpy as jnp
+import jax.random as jrandom
+from jax import tree_map, pmap
 import random
 import math
+import optax
+import chex
+import penzai
+import sonnet as snt
+import mujoco
+import haiku as hk
+import kfac_jax
+import dm_control
+import tf2jax
+import treescope
+import envlogger
+import mctx
+import synjax
+import xmanager
+import dks
+import mathematics_dataset
+import pysc2
+import calm
+import tensorflow_datasets as tfds
+import reverb
+import dm_pix as pix
+import distrax
+from einshape import jax_einshape as einshape
+from enn.loggers import TerminalLogger
+from enn import losses
+from enn import networks
+from enn import supervised
+from enn.supervised import regression_data
+import tensorflow_hub as hub
+import tensorflow as tf
+import tensorflow_text as text
+import jax_privacy
+import brave
+import pgmax
+from ferminet import base_config
+from ferminet.utils import system
+from ferminet import train
+import rlax
+import jmp
+import csuite
+import jraph
+from disentangled_rnns.library import get_datasets
+from disentangled_rnns.library import two_armed_bandits
+from disentangled_rnns.library import rnn_utils
+from disentangled_rnns.library import disrnn
+from routellm.controller import Controller
 
 # Custom minimal graph implementation to replace networkx
 class DiGraph:
@@ -23,235 +69,84 @@ class DiGraph:
     def in_edges(self, node):
         return [(u, node) for u in self.nodes if node in self.edges.get(u, set())]
 
-# Placeholder for NextGenJax Numpy-like functionality
+# Use JAX's built-in numpy and random functionality
 class NextGenJaxNumpy:
     def __init__(self):
-        self.random = self.RandomModule()
+        self.random = jrandom
 
     class Array:
         def __init__(self, data):
-            self.data = data
-            self.shape = self._get_shape(data)
-
-        def _get_shape(self, data):
-            print("_get_shape input type:", type(data))
-            print("_get_shape input value:", data)
-            if isinstance(data, (int, float)):
-                return ()
-            elif isinstance(data, (list, tuple)):
-                return (len(data),) + self._get_shape(data[0]) if data else ()
-            elif isinstance(data, NextGenJaxNumpy.Array):
-                return data.shape
-            elif hasattr(data, 'shape'):
-                return data.shape
-            else:
-                print("Unsupported data type encountered")
-                raise ValueError(f"Unsupported data type: {type(data)}. Value: {data}")
+            self.data = jnp.array(data)
+            self.shape = self.data.shape
 
         def __getitem__(self, key):
-            print(f"__getitem__ called with key: {key}")
-            print(f"Self data shape: {self._get_shape(self.data)}")
-            if isinstance(key, tuple):
-                result = self.data
-                for i, k in enumerate(key):
-                    print(f"Indexing step {i}: key={k}, current result shape: {self._get_shape(result)}")
-                    try:
-                        result = result[k]
-                    except IndexError as e:
-                        print(f"IndexError at step {i}: {str(e)}")
-                        raise
-                return result
-            else:
-                try:
-                    return self.data[key]
-                except IndexError as e:
-                    print(f"IndexError with single key {key}: {str(e)}")
-                    raise
+            return self.data[key]
 
         def __setitem__(self, key, value):
-            if isinstance(key, tuple):
-                target = self.data
-                for k in key[:-1]:
-                    target = target[k]
-                target[key[-1]] = value
-            else:
-                self.data[key] = value
+            self.data = self.data.at[key].set(value)
 
         def __len__(self):
             return len(self.data)
 
         def flatten(self):
-            def flatten_helper(lst):
-                flattened = []
-                for el in lst:
-                    if isinstance(el, (list, tuple, NextGenJaxNumpy.Array)):
-                        flattened.extend(flatten_helper(el))
-                    else:
-                        flattened.append(el)
-                return flattened
-            return flatten_helper(self.data)
+            return self.data.flatten()
 
         def __add__(self, other):
-            def add_recursive(a, b):
-                if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-                    return a + b
-                elif isinstance(a, list) and isinstance(b, list):
-                    return [add_recursive(x, y) for x, y in zip(a, b)]
-                elif isinstance(a, list) and isinstance(b, (int, float)):
-                    return [add_recursive(x, b) for x in a]
-                elif isinstance(a, (int, float)) and isinstance(b, list):
-                    return [add_recursive(a, y) for y in b]
-                else:
-                    raise TypeError(f"Unsupported types for addition: {type(a)} and {type(b)}")
-
             if isinstance(other, (int, float)):
-                return self.__class__(add_recursive(self.data, other))
+                return self.__class__(self.data + other)
             elif isinstance(other, self.__class__):
-                return self.__class__(add_recursive(self.data, other.data))
+                return self.__class__(self.data + other.data)
             else:
                 raise TypeError(f"unsupported operand type(s) for +: '{self.__class__.__name__}' and '{type(other).__name__}'")
 
         def __radd__(self, other):
             return self.__add__(other)
 
-    class RandomModule:
-        def normal(self, loc=0.0, scale=1.0, size=None):
-            if not isinstance(loc, (int, float)) or not isinstance(scale, (int, float)):
-                raise ValueError("loc and scale must be numbers")
-            if scale <= 0:
-                raise ValueError("scale must be positive")
+    def normal(self, loc=0.0, scale=1.0, size=None):
+        key = jrandom.PRNGKey(0)
+        return jrandom.normal(key, shape=size) * scale + loc
 
-            def box_muller():
-                u1 = random.random()
-                u2 = random.random()
-                z0 = math.sqrt(-2.0 * math.log(u1)) * math.cos(2 * math.pi * u2)
-                return loc + scale * z0
-
-            if size is None:
-                return box_muller()
-            if isinstance(size, int):
-                return NextGenJaxNumpy.Array([box_muller() for _ in range(size)])
-            if isinstance(size, tuple):
-                return NextGenJaxNumpy.Array(self._generate_nested_normal(size))
-            raise ValueError("Size must be None, an int, or a tuple of ints")
-
-        def _generate_nested_normal(self, shape):
-            if len(shape) == 0:
-                return self.normal()
-            return [self._generate_nested_normal(shape[1:]) for _ in range(shape[0])]
-
-        def randint(self, low, high, size=None):
-            if size is None:
-                return random.randint(low, high - 1)
-            if isinstance(size, int) or (isinstance(size, tuple) and len(size) == 1):
-                size = size[0] if isinstance(size, tuple) else size
-                return NextGenJaxNumpy.Array([random.randint(low, high - 1) for _ in range(size)])
-            elif isinstance(size, tuple):
-                return NextGenJaxNumpy.Array(self._generate_nested_randint(size, low, high))
-            else:
-                raise ValueError("Size must be None, an int, or a tuple of ints")
-
-        def _generate_nested_randint(self, shape, low, high):
-            if len(shape) == 0:
-                return random.randint(low, high - 1)
-            return [self._generate_nested_randint(shape[1:], low, high) for _ in range(shape[0])]
+    def randint(self, low, high, size=None):
+        key = jrandom.PRNGKey(0)
+        return jrandom.randint(key, shape=size, minval=low, maxval=high)
 
     def zeros(self, shape):
-        if isinstance(shape, int):
-            return self.Array([0] * shape)
-        elif isinstance(shape, tuple):
-            return self.Array(self._generate_nested_lists(shape, 0))
-        else:
-            raise ValueError("Shape must be an int or a tuple of ints")
-
-    def _generate_nested_lists(self, shape, fill):
-        if len(shape) == 1:
-            return [fill] * shape[0]
-        return [self._generate_nested_lists(shape[1:], fill) for _ in range(shape[0])]
+        return self.Array(jnp.zeros(shape))
 
     def random_normal(self, shape, mean=0.0, std=1.0):
-        return self.random.normal(loc=mean, scale=std, size=shape)
-
-    def random(self, shape):
-        if isinstance(shape, int):
-            return self.Array([random.random() for _ in range(shape)])
-        elif isinstance(shape, tuple):
-            return self.Array(self._generate_nested_lists_with_random_uniform(shape))
-        else:
-            raise ValueError("Shape must be an int or a tuple of ints")
-
-    def _generate_nested_lists_with_random_uniform(self, shape):
-        if len(shape) == 1:
-            return [random.random() for _ in range(shape[0])]
-        return [self._generate_nested_lists_with_random_uniform(shape[1:]) for _ in range(shape[0])]
+        return self.normal(loc=mean, scale=std, size=shape)
 
     def array(self, data):
-        if isinstance(data, (int, float, list, tuple, NextGenJaxNumpy.Array)):
-            return self.Array(data)
-        elif hasattr(data, '__array__'):  # Support numpy-like arrays
-            return self.Array(data.__array__())
-        elif hasattr(data, 'tolist'):  # Support tensor-like objects
-            return self.Array(data.tolist())
-        else:
-            try:
-                return self.Array(list(data))  # Attempt to convert to list
-            except:
-                raise ValueError(f"Unsupported data type for array: {type(data)}")
+        return self.Array(jnp.array(data))
 
     def shape(self, arr):
-        if isinstance(arr, self.Array):
-            return arr.shape
-        elif isinstance(arr, (list, tuple)):
-            return (len(arr),) + self.shape(arr[0]) if arr else ()
-        else:
-            return ()
+        return jnp.shape(arr)
 
     def reshape(self, arr, new_shape):
-        if isinstance(arr, self.Array):
-            arr = arr.data
-        flat = self._flatten(arr)
-        if isinstance(new_shape, int):
-            new_shape = (new_shape,)
-        return self.Array(self._reshape_recursive(flat, new_shape))
+        return self.Array(jnp.reshape(arr, new_shape))
 
-    def _reshape_recursive(self, flat, shape):
-        if len(shape) == 1:
-            return flat[:shape[0]]
-        size = shape[0]
-        sub_size = len(flat) // size
-        return [self._reshape_recursive(flat[i*sub_size:(i+1)*sub_size], shape[1:]) for i in range(size)]
+    def random(self, shape):
+        key = jrandom.PRNGKey(0)
+        return self.Array(jrandom.uniform(key, shape=shape))
 
-    def _flatten(self, arr):
-        if isinstance(arr, (int, float)):
-            return [arr]
-        return [item for sublist in arr for item in self._flatten(sublist)]
+    def array(self, data):
+        return self.Array(jnp.array(data))
+
+    def shape(self, arr):
+        return jnp.shape(arr)
+
+    def reshape(self, arr, new_shape):
+        return self.Array(jnp.reshape(arr, new_shape))
 
     def transpose(self, arr):
-        if len(self.shape(arr)) != 2:
-            raise ValueError("Transpose operation is only supported for 2D arrays")
-        return self.Array([[arr[j][i] for j in range(len(arr))] for i in range(len(arr[0]))])
+        return self.Array(jnp.transpose(arr))
 
     def conv3d(self, input, filters, strides=(1, 1, 1), padding='VALID'):
-        print(f"Conv3D input shape: {self.shape(input)}")
-        print(f"Conv3D filter shape: {self.shape(filters)}")
-        print(f"Conv3D strides: {strides}")
-        print(f"Conv3D padding: {padding}")
-
-        # Input shape: (batch, depth, height, width, in_channels)
-        # Filters shape: (filter_depth, filter_height, filter_width, in_channels, out_channels)
-
         # Ensure input and filters have correct dimensions
         if len(self.shape(input)) != 5:
             raise ValueError(f"Input must have 5 dimensions, but got {len(self.shape(input))}")
         if len(self.shape(filters)) != 5:
             raise ValueError(f"Filters must have 5 dimensions, but got {len(self.shape(filters))}")
-
-        # Implement padding if needed
-        if padding.upper() == 'SAME':
-            pad_d = (self.shape(filters)[0] - 1) // 2
-            pad_h = (self.shape(filters)[1] - 1) // 2
-            pad_w = (self.shape(filters)[2] - 1) // 2
-            input = self._pad_3d(input, ((0, 0), (pad_d, pad_d), (pad_h, pad_h), (pad_w, pad_w), (0, 0)))
 
         # Get shapes
         batch, in_depth, in_height, in_width, in_channels = self.shape(input)
@@ -261,87 +156,23 @@ class NextGenJaxNumpy:
         if in_channels != filter_in_channels:
             raise ValueError(f"Input channels ({in_channels}) must match filter input channels ({filter_in_channels})")
 
-        print(f"Input shape after padding: {self.shape(input)}")
-        print(f"Filter dimensions: {filter_depth}, {filter_height}, {filter_width}, {filter_in_channels}, {out_channels}")
+        # Use JAX's lax.conv_general_dilated for 3D convolution
+        dimension_numbers = ('NDHWC', 'DHWIO', 'NDHWC')
+        output = jax.lax.conv_general_dilated(
+            input,
+            filters,
+            strides,
+            padding,
+            dimension_numbers=dimension_numbers
+        )
 
-        # Calculate output shape
-        out_depth = (in_depth - filter_depth) // strides[0] + 1
-        out_height = (in_height - filter_height) // strides[1] + 1
-        out_width = (in_width - filter_width) // strides[2] + 1
+        return self.Array(output)
 
-        print(f"Calculated output dimensions: {out_depth}, {out_height}, {out_width}, {out_channels}")
+    def zeros(self, shape):
+        return self.Array(jnp.zeros(shape))
 
-        # Initialize output
-        output = self.zeros((batch, out_depth, out_height, out_width, out_channels))
-
-        # Perform convolution
-        for b in range(batch):
-            for d in range(out_depth):
-                for h in range(out_height):
-                    for w in range(out_width):
-                        for c in range(out_channels):
-                            print(f"Current indices: b={b}, d={d}, h={h}, w={w}, c={c}")
-
-                            d_start = d * strides[0]
-                            h_start = h * strides[1]
-                            w_start = w * strides[2]
-                            d_end = min(d_start + filter_depth, in_depth)
-                            h_end = min(h_start + filter_height, in_height)
-                            w_end = min(w_start + filter_width, in_width)
-
-                            print(f"Slice indices: d={d_start}:{d_end}, h={h_start}:{h_end}, w={w_start}:{w_end}")
-
-                            try:
-                                input_slice = input[b, d_start:d_end, h_start:h_end, w_start:w_end, :]
-                                filter_slice = filters[:, :, :, :, c]
-                            except IndexError as e:
-                                print(f"IndexError encountered: {str(e)}. Skipping this iteration.")
-                                continue
-
-                            print(f"Input slice shape: {self.shape(input_slice)}")
-                            print(f"Filter slice shape: {self.shape(filter_slice)}")
-
-                            # Check if slices are empty
-                            if 0 in self.shape(input_slice) or 0 in self.shape(filter_slice):
-                                print(f"Warning: Empty slice encountered. Skipping this iteration.")
-                                continue
-
-                            try:
-                                input_slice_flat = self.reshape(input_slice, (-1, in_channels))
-                                filter_slice_flat = self.reshape(filter_slice, (-1, filter_in_channels))
-                            except Exception as e:
-                                print(f"Error during reshaping: {str(e)}")
-                                print(f"Input slice shape: {self.shape(input_slice)}")
-                                print(f"Filter slice shape: {self.shape(filter_slice)}")
-                                continue
-
-                            print(f"Reshaped input slice shape: {self.shape(input_slice_flat)}")
-                            print(f"Reshaped filter slice shape: {self.shape(filter_slice_flat)}")
-
-                            try:
-                                filter_slice_flat = self.transpose(filter_slice_flat)
-                            except Exception as e:
-                                print(f"Error during transpose: {str(e)}")
-                                print(f"Filter slice shape before transpose: {self.shape(filter_slice_flat)}")
-                                continue
-
-                            print(f"Input slice flat shape: {self.shape(input_slice_flat)}")
-                            print(f"Filter slice flat shape: {self.shape(filter_slice_flat)}")
-
-                            try:
-                                result = self.dot(input_slice_flat, filter_slice_flat)
-                            except Exception as e:
-                                print(f"Error during dot product: {str(e)}")
-                                print(f"Input slice shape: {self.shape(input_slice_flat)}")
-                                print(f"Filter slice shape: {self.shape(filter_slice_flat)}")
-                                continue
-
-                            print(f"Dot product result shape: {self.shape(result)}")
-
-                            output[b, d, h, w, c] = self._sum(result)
-
-        print(f"Conv3D output shape: {self.shape(output)}")
-        return output
+    def _pad_3d(self, array, pad_width):
+        return jnp.pad(array, pad_width, mode='constant')
 
     def dot(self, a, b):
         """
@@ -358,9 +189,6 @@ class NextGenJaxNumpy:
             TypeError: If inputs are not instances of NextGenJaxNumpy.Array
             ValueError: If inputs are empty, higher than 2D, or have incompatible shapes
         """
-        print(f"Dot input a shape: {self.shape(a)}, type: {type(a)}")
-        print(f"Dot input b shape: {self.shape(b)}, type: {type(b)}")
-
         # Ensure inputs are Array instances
         if not isinstance(a, self.Array) or not isinstance(b, self.Array):
             raise TypeError(f"Inputs must be instances of NextGenJaxNumpy.Array. Got types: {type(a)} and {type(b)}")
@@ -383,77 +211,39 @@ class NextGenJaxNumpy:
         if self.shape(a)[1] != self.shape(b)[0]:
             raise ValueError(f"Incompatible shapes for dot product: {self.shape(a)} and {self.shape(b)}")
 
-        # Implement dot product calculation
-        result = self.zeros((self.shape(a)[0], self.shape(b)[1]))
-        for i in range(self.shape(a)[0]):
-            for j in range(self.shape(b)[1]):
-                result[i, j] = sum(a[i, k] * b[k, j] for k in range(self.shape(a)[1]))
-
-        print(f"Dot product result shape: {self.shape(result)}")
-        return result
+        # Implement dot product calculation using JAX
+        return self.Array(jnp.dot(a.data, b.data))
 
     def multiply(self, a, b):
-        print(f"Debug: multiply input types: a={type(a)}, b={type(b)}")
-        print(f"Debug: multiply input shapes: a={self.shape(a)}, b={self.shape(b)}")
-
         if isinstance(a, (int, float)) or isinstance(b, (int, float)):
-            return self.Array([x * b for x in a]) if isinstance(a, (list, self.Array)) else self.Array([a * x for x in b])
-        elif isinstance(a, (list, self.Array)) and isinstance(b, (list, self.Array)):
+            return self.Array(jnp.multiply(a, b.data) if isinstance(b, self.Array) else jnp.multiply(a.data, b))
+        elif isinstance(a, self.Array) and isinstance(b, self.Array):
             if self.shape(a) != self.shape(b):
                 raise ValueError(f"Cannot multiply arrays with shapes {self.shape(a)} and {self.shape(b)}")
-            return self.Array(self._multiply_recursive(a, b))
+            return self.Array(jnp.multiply(a.data, b.data))
         else:
             raise TypeError(f"Unsupported types for multiplication: {type(a)} and {type(b)}")
 
-    def _multiply_recursive(self, a, b):
-        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-            return a * b
-        return [self._multiply_recursive(ai, bi) for ai, bi in zip(a, b)]
-
     def _sum(self, arr):
-        if isinstance(arr, (int, float)):
+        if isinstance(arr, self.Array):
+            return jnp.sum(arr.data)
+        elif isinstance(arr, (int, float)):
             return arr
-        if isinstance(arr, list):
+        elif isinstance(arr, list):
             return sum(self._sum(x) for x in arr)
-        return sum(arr)
+        else:
+            raise TypeError(f"Unsupported type for sum: {type(arr)}")
 
     def _pad_3d(self, array, pad_width):
         # Helper method to pad 3D arrays
-        padded = self.zeros((
-            self.shape(array)[0] + pad_width[0][0] + pad_width[0][1],
-            self.shape(array)[1] + pad_width[1][0] + pad_width[1][1],
-            self.shape(array)[2] + pad_width[2][0] + pad_width[2][1],
-            self.shape(array)[3] + pad_width[3][0] + pad_width[3][1],
-            self.shape(array)[4] + pad_width[4][0] + pad_width[4][1]
-        ))
-        padded[
-            pad_width[0][0]:self.shape(padded)[0]-pad_width[0][1],
-            pad_width[1][0]:self.shape(padded)[1]-pad_width[1][1],
-            pad_width[2][0]:self.shape(padded)[2]-pad_width[2][1],
-            pad_width[3][0]:self.shape(padded)[3]-pad_width[3][1],
-            pad_width[4][0]:self.shape(padded)[4]-pad_width[4][1]
-        ] = array
-        return padded
+        return jnp.pad(array.data, pad_width, mode='constant')
 
     @staticmethod
     def maximum(x, y):
-        if isinstance(x, (int, float)) and isinstance(y, (int, float)):
-            return max(x, y)
-        elif isinstance(x, NextGenJaxNumpy.Array) and isinstance(y, (int, float)):
-            return NextGenJaxNumpy.Array([max(xi, y) for xi in x.flatten()])
-        elif isinstance(x, (int, float)) and isinstance(y, NextGenJaxNumpy.Array):
-            return NextGenJaxNumpy.Array([max(x, yi) for yi in y.flatten()])
-        elif isinstance(x, NextGenJaxNumpy.Array) and isinstance(y, NextGenJaxNumpy.Array):
-            return NextGenJaxNumpy.Array([max(xi, yi) for xi, yi in zip(x.flatten(), y.flatten())])
-        else:
-            raise TypeError("Unsupported types for maximum operation")
+        return jnp.maximum(x, y)
 
     # Add other numpy-like methods as needed
 
-# Instantiate the NextGenJaxNumpy class for use in the model
-nnp = NextGenJaxNumpy()
-
-# Update the NextGenJax model to use the plugins for hardware acceleration
 class NextGenJaxModel:
     def __init__(self, input_shape_3d=(64, 64, 64, 1), num_classes=10):
         # Initialize model parameters
@@ -461,11 +251,18 @@ class NextGenJaxModel:
         self.input_shape_2d = (64, 64, 3)  # Example 2D input shape
         self.num_classes = num_classes
 
-        # Initialize the plugins
-        self.cuda_plugin = CudaPlugin()
-        self.nextgenjaxlib = NextGenJaxLib()
+        # Instantiate the NextGenJaxNumpy class for use in the model
+        self.nnp = NextGenJaxNumpy()
 
-        # Initialize the NextGenJax model with advanced features inspired by the libraries
+        # Update the NextGenJax model to use hardware acceleration
+
+        # Initialize the plugins
+        self._initialize_plugins()
+
+        # Build the model
+        self.model = self.build_model()
+
+        # Initialize other components
         self.neural_framework = self.AIPhoenix_NeuralFramework()
         self.graph_builder = self.AIPhoenix_GraphBuilder()
         self.language_router = self.AIPhoenix_LanguageRouter()
@@ -474,6 +271,12 @@ class NextGenJaxModel:
         self.optimizer_kit = self.AIPhoenix_OptimizerKit()
         self.speech_transcriber = self.AIPhoenix_SpeechTranscriber()
         self.distributed_trainer = self.AIPhoenix_DistributedTrainer()
+
+    def _initialize_plugins(self):
+        from src.nextgenjax.plugins.cuda_plugin import CudaPlugin
+        from src.nextgenjax.plugins.nextgenjaxlib_plugin import NextGenJaxLib
+        self.cuda_plugin = CudaPlugin()
+        self.nextgenjaxlib = NextGenJaxLib()
 
         # Build the model
         self.model = self.build_model()
@@ -491,27 +294,27 @@ class NextGenJaxModel:
         class LSTM:
             def __init__(self, units):
                 self.units = units
-                self.W = nnp.random_normal((units, units * 4))
-                self.U = nnp.random_normal((units, units * 4))
-                self.b = nnp.zeros((units * 4,))
+                self.W = self.nnp.random_normal((units, units * 4))
+                self.U = self.nnp.random_normal((units, units * 4))
+                self.b = self.nnp.zeros((units * 4,))
 
             def __call__(self, x, h, c):
-                gates = nnp.dot(x, self.W) + nnp.dot(h, self.U) + self.b
-                i, f, o, g = nnp.split(gates, 4, axis=-1)
-                i, f, o, g = nnp.sigmoid(i), nnp.sigmoid(f), nnp.sigmoid(o), nnp.tanh(g)
+                gates = self.nnp.dot(x, self.W) + self.nnp.dot(h, self.U) + self.b
+                i, f, o, g = self.nnp.split(gates, 4, axis=-1)
+                i, f, o, g = self.nnp.sigmoid(i), self.nnp.sigmoid(f), self.nnp.sigmoid(o), self.nnp.tanh(g)
                 c = f * c + i * g
-                h = o * nnp.tanh(c)
+                h = o * self.nnp.tanh(c)
                 return h, c
 
         class Dense:
             def __init__(self, units, activation=None):
                 self.units = units
                 self.activation = activation
-                self.W = nnp.random_normal((units,))
-                self.b = nnp.zeros((units,))
+                self.W = self.nnp.random_normal((units,))
+                self.b = self.nnp.zeros((units,))
 
             def __call__(self, x):
-                output = nnp.dot(x, self.W) + self.b
+                output = self.nnp.dot(x, self.W) + self.b
                 return self.activation(output) if self.activation else output
 
         class Conv2D:
@@ -521,11 +324,11 @@ class NextGenJaxModel:
                 self.strides = strides
                 self.padding = padding
                 self.activation = activation
-                self.W = nnp.random_normal(kernel_size + (filters,))
-                self.b = nnp.zeros((filters,))
+                self.W = self.nnp.random_normal(kernel_size + (filters,))
+                self.b = self.nnp.zeros((filters,))
 
             def __call__(self, x):
-                output = nnp.conv2d(x, self.W, strides=self.strides, padding=self.padding) + self.b
+                output = self.nnp.conv2d(x, self.W, strides=self.strides, padding=self.padding) + self.b
                 return self.activation(output) if self.activation else output
 
         class MaxPooling2D:
@@ -535,7 +338,7 @@ class NextGenJaxModel:
                 self.padding = padding
 
             def __call__(self, x):
-                return nnp.max_pool2d(x, self.pool_size, self.strides, self.padding)
+                return self.nnp.max_pool2d(x, self.pool_size, self.strides, self.padding)
 
         class Conv3D:
             def __init__(self, filters, kernel_size, strides=(1, 1, 1), padding='valid', activation=None):
@@ -547,18 +350,18 @@ class NextGenJaxModel:
                 # Initialize W with 5 dimensions: (depth, height, width, in_channels, out_channels)
                 # Note: in_channels will be set when __call__ is first invoked
                 self.W = None
-                self.b = nnp.zeros((filters,))
+                self.b = self.nnp.zeros((filters,))
 
             def __call__(self, x):
                 if self.W is None:
                     in_channels = x.shape[-1]
-                    self.W = nnp.random_normal((self.kernel_size[0], self.kernel_size[1], self.kernel_size[2], in_channels, self.filters))
+                    self.W = self.nnp.random_normal((self.kernel_size[0], self.kernel_size[1], self.kernel_size[2], in_channels, self.filters))
 
                 print(f"Conv3D input shape: {x.shape}")
                 print(f"Conv3D filter shape: {self.W.shape}")
                 print(f"Conv3D strides: {self.strides}")
                 print(f"Conv3D padding: {self.padding}")
-                output = nnp.conv3d(x, self.W, strides=self.strides, padding=self.padding) + self.b
+                output = self.nnp.conv3d(x, self.W, strides=self.strides, padding=self.padding) + self.b
                 print(f"Conv3D output shape: {output.shape}")
                 return self.activation(output) if self.activation else output
 
@@ -569,7 +372,7 @@ class NextGenJaxModel:
                 self.padding = padding
 
             def __call__(self, x):
-                return nnp.max_pool3d(x, self.pool_size, self.strides, self.padding)
+                return self.nnp.max_pool3d(x, self.pool_size, self.strides, self.padding)
 
         class Flatten:
             def __call__(self, x):
@@ -580,7 +383,7 @@ class NextGenJaxModel:
                 self.axis = axis
 
             def __call__(self, inputs):
-                return nnp.concatenate(inputs, axis=self.axis)
+                return self.nnp.concatenate(inputs, axis=self.axis)
 
         class AdvancedNeuralNetwork:
             def __init__(self, layers):
@@ -601,14 +404,14 @@ class NextGenJaxModel:
                     if isinstance(x, list):
                         print("Layer input (list) types:", [type(xi) for xi in x])
                         try:
-                            x = [layer(xi if isinstance(xi, NextGenJaxNumpy.Array) else nnp.array(xi)) for xi in x]
+                            x = [layer(xi if isinstance(xi, NextGenJaxNumpy.Array) else self.nnp.array(xi)) for xi in x]
                         except Exception as e:
                             print(f"Error in layer {i} (list input): {str(e)}")
                             raise
                     else:
                         print("Layer input type:", type(x))
                         try:
-                            x = layer(x if isinstance(x, NextGenJaxNumpy.Array) else nnp.array(x))
+                            x = layer(x if isinstance(x, NextGenJaxNumpy.Array) else self.nnp.array(x))
                         except Exception as e:
                             print(f"Error in layer {i} (single input): {str(e)}")
                             raise
@@ -618,26 +421,26 @@ class NextGenJaxModel:
         # Create and return an instance of AdvancedNeuralNetwork with predefined layers
         layers_3d = [
             Input(shape=self.input_shape_3d),
-            Conv3D(32, (3, 3, 3), activation=lambda x: nnp.maximum(x, 0)),
+            Conv3D(32, (3, 3, 3), activation=lambda x: self.nnp.maximum(x, 0)),
             MaxPooling3D((2, 2, 2)),
-            Conv3D(64, (3, 3, 3), activation=lambda x: nnp.maximum(x, 0)),
+            Conv3D(64, (3, 3, 3), activation=lambda x: self.nnp.maximum(x, 0)),
             MaxPooling3D((2, 2, 2)),
             Flatten(),
         ]
 
         layers_2d = [
             Input(shape=self.input_shape_2d),
-            Conv2D(32, (3, 3), activation=lambda x: nnp.maximum(x, 0)),
+            Conv2D(32, (3, 3), activation=lambda x: self.nnp.maximum(x, 0)),
             MaxPooling2D((2, 2)),
-            Conv2D(64, (3, 3), activation=lambda x: nnp.maximum(x, 0)),
+            Conv2D(64, (3, 3), activation=lambda x: self.nnp.maximum(x, 0)),
             MaxPooling2D((2, 2)),
             Flatten(),
         ]
 
         combined_layers = [
             Concatenate(),
-            Dense(128, activation=lambda x: nnp.maximum(x, 0)),
-            Dense(self.num_classes, activation=lambda x: nnp.exp(x) / nnp.sum(nnp.exp(x), axis=-1, keepdims=True))
+            Dense(128, activation=lambda x: self.nnp.maximum(x, 0)),
+            Dense(self.num_classes, activation=lambda x: self.nnp.exp(x) / self.nnp.sum(self.nnp.exp(x), axis=-1, keepdims=True))
         ]
 
         return AdvancedNeuralNetwork(layers_3d + layers_2d + combined_layers)
@@ -697,21 +500,21 @@ class NextGenJaxModel:
         # Inspired by RouteLL's language routing capabilities
         class LanguageRouter:
             def __init__(self, num_languages: int, embedding_dim: int):
-                self.language_embeddings = nnp.random.normal(size=(num_languages, embedding_dim))
+                self.language_embeddings = self.nnp.random.normal(size=(num_languages, embedding_dim))
                 self.routing_network = None  # Placeholder, to be initialized externally
 
             def route(self, input_text: str, language_id: int):
                 if self.routing_network is None:
                     return 0  # Default routing decision
                 # Simplified text embedding (in practice, use a proper text encoder)
-                text_embedding = nnp.mean(nnp.array([ord(c) for c in input_text]))
+                text_embedding = self.nnp.mean(self.nnp.array([ord(c) for c in input_text]))
                 language_embedding = self.language_embeddings[language_id]
-                combined_embedding = nnp.concatenate([text_embedding, language_embedding])
+                combined_embedding = self.nnp.concatenate([text_embedding, language_embedding])
                 routing_decision = self.routing_network(combined_embedding)
-                return nnp.argmax(routing_decision)
+                return self.nnp.argmax(routing_decision)
 
             def add_language(self, language_embedding: Any):
-                self.language_embeddings = nnp.vstack([self.language_embeddings, language_embedding])
+                self.language_embeddings = self.nnp.vstack([self.language_embeddings, language_embedding])
 
         return LanguageRouter(num_languages=10, embedding_dim=64)
 
@@ -735,7 +538,7 @@ class NextGenJaxModel:
             def process(self, input_text: str, language_id: int):
                 current_output = input_text
                 for model in self.models:
-                    model_input = nnp.array([ord(c) for c in current_output])
+                    model_input = self.nnp.array([ord(c) for c in current_output])
                     current_output = model(model_input)
                     routing_decision = self.router.route(current_output, language_id)
                     if routing_decision == 0:  # Assuming 0 means "stop processing"
@@ -757,10 +560,10 @@ class NextGenJaxModel:
                 self.reset()
 
             def reset(self):
-                self.agent_pos = (nnp.random.randint(0, self.size),
-                                  nnp.random.randint(0, self.size))
-                self.goal_pos = (nnp.random.randint(0, self.size),
-                                 nnp.random.randint(0, self.size))
+                self.agent_pos = (self.nnp.random.randint(0, self.size),
+                                  self.nnp.random.randint(0, self.size))
+                self.goal_pos = (self.nnp.random.randint(0, self.size),
+                                 self.nnp.random.randint(0, self.size))
                 return self._get_observation()
 
             def step(self, action: int):
@@ -775,7 +578,7 @@ class NextGenJaxModel:
                 return self._get_observation(), reward, done, {}
 
             def _get_observation(self):
-                return nnp.array(self.agent_pos + self.goal_pos)
+                return self.nnp.array(self.agent_pos + self.goal_pos)
 
             def render(self):
                 grid = [['.' for _ in range(self.size)] for _ in range(self.size)]
@@ -800,8 +603,8 @@ class NextGenJaxModel:
 
             def adam(self, params, grads, state=None, learning_rate=0.001, beta1=0.9, beta2=0.999, eps=1e-8):
                 if state is None:
-                    state = {'m': tree_map(nnp.zeros_like, params),
-                             'v': tree_map(nnp.zeros_like, params),
+                    state = {'m': tree_map(self.nnp.zeros_like, params),
+                             'v': tree_map(self.nnp.zeros_like, params),
                              't': 0}
 
                 state['t'] += 1
@@ -809,10 +612,10 @@ class NextGenJaxModel:
 
                 def update(param, grad, m, v):
                     m = beta1 * m + (1 - beta1) * grad
-                    v = beta2 * v + (1 - beta2) * nnp.square(grad)
+                    v = beta2 * v + (1 - beta2) * self.nnp.square(grad)
                     m_hat = m / (1 - beta1**t)
                     v_hat = v / (1 - beta2**t)
-                    param = param - learning_rate * m_hat / (nnp.sqrt(v_hat) + eps)
+                    param = param - learning_rate * m_hat / (self.nnp.sqrt(v_hat) + eps)
                     return param, m, v
 
                 new_params, new_m, new_v = tree_map(update, params, grads, state['m'], state['v'])
@@ -821,11 +624,11 @@ class NextGenJaxModel:
 
             def rmsprop(self, params, grads, state=None, learning_rate=0.01, decay=0.9, eps=1e-8):
                 if state is None:
-                    state = tree_map(nnp.zeros_like, params)
+                    state = tree_map(self.nnp.zeros_like, params)
 
                 def update(param, grad, s):
-                    s = decay * s + (1 - decay) * nnp.square(grad)
-                    param = param - learning_rate * grad / (nnp.sqrt(s) + eps)
+                    s = decay * s + (1 - decay) * self.nnp.square(grad)
+                    param = param - learning_rate * grad / (self.nnp.sqrt(s) + eps)
                     return param, s
 
                 new_params, new_state = tree_map(update, params, grads, state)
@@ -849,21 +652,21 @@ class NextGenJaxModel:
 
             def _create_mel_filters(self):
                 # Simplified mel filter creation
-                return nnp.random.normal(size=(80, self.n_fft // 2 + 1))
+                return self.nnp.random.normal(size=(80, self.n_fft // 2 + 1))
 
             def preprocess_audio(self, audio):
                 # Compute spectrogram
-                stft = nnp.abs(self._stft(audio))
+                stft = self.nnp.abs(self._stft(audio))
                 # Apply mel filters
-                mel_spec = nnp.dot(self.mel_filters, stft)
+                mel_spec = self.nnp.dot(self.mel_filters, stft)
                 # Log-scale the mel-spectrogram
-                log_mel_spec = nnp.log(mel_spec + 1e-9)
+                log_mel_spec = self.nnp.log(mel_spec + 1e-9)
                 return log_mel_spec
 
             def _stft(self, audio):
                 # Simplified STFT implementation
-                window = nnp.array([0.5 - 0.5 * nnp.cos(2 * nnp.pi * i / (self.n_fft - 1)) for i in range(self.n_fft)])
-                return nnp.array([nnp.fft.rfft(audio[i:i+self.n_fft] * window)
+                window = self.nnp.array([0.5 - 0.5 * self.nnp.cos(2 * self.nnp.pi * i / (self.n_fft - 1)) for i in range(self.n_fft)])
+                return self.nnp.array([self.nnp.fft.rfft(audio[i:i+self.n_fft] * window)
                                  for i in range(0, len(audio) - self.n_fft, self.hop_length)])
 
             def generate_text(self, mel_spec):
@@ -889,14 +692,14 @@ class NextGenJaxModel:
                 return pmap(apply_model)(model.params, batch)
 
             def aggregate_gradients(self, grads):
-                return tree_map(lambda *args: nnp.mean(nnp.stack(args), axis=0), *grads)
+                return tree_map(lambda *args: self.nnp.mean(self.nnp.stack(args), axis=0), *grads)
 
             def train_step(self, model, optimizer, batch):
                 def loss_fn(params, x, y):
                     logits = model.apply(params, x)
-                    return nnp.mean((logits - y) ** 2)
+                    return self.nnp.mean((logits - y) ** 2)
 
-                grad_fn = lambda params, x, y: (loss_fn(params, x, y), nnp.grad(loss_fn)(params, x, y))
+                grad_fn = lambda params, x, y: (loss_fn(params, x, y), self.nnp.grad(loss_fn)(params, x, y))
 
                 def per_device_train_step(params, opt_state, x, y):
                     loss, grads = grad_fn(params, x, y)
@@ -913,8 +716,8 @@ class NextGenJaxModel:
 
     def process_input(self, input_3d, input_2d):
         try:
-            input_3d_tensor = nnp.array(input_3d)
-            input_2d_tensor = nnp.array(input_2d)
+            input_3d_tensor = self.nnp.array(input_3d)
+            input_2d_tensor = self.nnp.array(input_2d)
         except ValueError as e:
             print(f"Error creating array: {e}")
             print(f"input_3d type: {type(input_3d)}, shape: {getattr(input_3d, 'shape', 'N/A')}")
@@ -928,18 +731,18 @@ class NextGenJaxModel:
         processed_data = []
         for i in range(0, len(data), chunk_size):
             chunk = data[i:i+chunk_size]
-            processed_chunk = nnp.fft.ifft(nnp.fft.fft(chunk)).real
+            processed_chunk = self.nnp.fft.ifft(self.nnp.fft.fft(chunk)).real
             processed_data.append(processed_chunk)
-        return nnp.concatenate(processed_data)
+        return self.nnp.concatenate(processed_data)
 
     def complex_decision_making(self, input_data: Any) -> Any:
-        if nnp.mean(input_data) > 0.5:
-            if nnp.std(input_data) < 0.1:
-                return nnp.ones_like(input_data)
+        if self.nnp.mean(input_data) > 0.5:
+            if self.nnp.std(input_data) < 0.1:
+                return self.nnp.ones_like(input_data)
             else:
-                return nnp.tanh(input_data)
+                return self.nnp.tanh(input_data)
         else:
-            if nnp.max(input_data) > 0.8:
-                return nnp.exp(input_data) / nnp.sum(nnp.exp(input_data))
+            if self.nnp.max(input_data) > 0.8:
+                return self.nnp.exp(input_data) / self.nnp.sum(self.nnp.exp(input_data))
             else:
-                return nnp.zeros_like(input_data)
+                return self.nnp.zeros_like(input_data)

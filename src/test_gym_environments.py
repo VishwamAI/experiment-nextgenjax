@@ -1,3 +1,8 @@
+import jax.numpy as jnp
+import jax.random as jrandom
+import optax
+import chex
+import haiku as hk
 
 # Gym Environment and Wrapper Tests Implementation
 
@@ -20,4 +25,3 @@ def test_time_aware_observation():
 
 # The actual logic and algorithms for the tests will be implemented in accordance with the user's specifications.
 # These tests will ensure that the NextGenJax model's Gym environments and wrappers are robust and function correctly.
-

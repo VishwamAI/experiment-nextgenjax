@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='nextgenjax',
+    name='advancedjax',
     version='0.1.0',
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
@@ -9,7 +9,7 @@ setup(
         'numpy',
         # Add other dependencies as needed
     ],
-    description='NextGenJax: Advanced AI and Machine Learning Framework',
+    description='AdvancedJax: State-of-the-Art AI and Machine Learning Framework',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     author='VishwamAI',

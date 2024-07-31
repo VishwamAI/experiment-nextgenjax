@@ -95,7 +95,7 @@ class NextGenJaxModel(Model):
 
 # Instantiate the model with a defined vocabulary size
 vocab_size = 10000  # This should be set based on the actual vocabulary size
-nextgenjax_model = NextGenJaxModel(vocab_size=vocab_size)
+advanced_jax_model = NextGenJaxModel(vocab_size=vocab_size)
 
 # Save the updated model architecture
-nextgenjax_model.model.save('nextgenjax_model.keras')
+advanced_jax_model.model.save('advanced_jax_model.keras')

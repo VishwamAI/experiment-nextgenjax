@@ -1,16 +1,24 @@
 from typing import List, Tuple, Callable, Dict, Any
-import nextgenjax as nnp
-from nextgenjax import numpy as jnp
-from nextgenjax.aliases import npf, alr, acl, aes, aok, ast, adt
-from nextgenjax import tree_map, pmap
-from nextgenjax.plugins.cuda_plugin import CudaPlugin
-from nextgenjax.plugins.nextgenjaxlib_plugin import NextGenJaxLib
 import random
 import math
 import scipy as sp
 import matplotlib.pyplot as plt
-from grad.grad import grad
-from jit.jit import jit
+import jax
+import jax.numpy as jnp
+import jax.random as jrandom
+import jax.lax as jlax
+from jax import grad, jit
+import torch
+
+# Note: To avoid circular imports, nextgenjax is imported locally within functions as needed.
+# The following imports have been removed or will be imported locally:
+# import nextgenjax as nnp
+# from nextgenjax import numpy as jnp
+# from nextgenjax.aliases import npf, alr, acl, aes, aok, ast, adt
+# from nextgenjax import tree_map, pmap
+# from nextgenjax.plugins.cuda_plugin import CudaPlugin
+# from nextgenjax.plugins.nextgenjaxlib_plugin import NextGenJaxLib
+# Local imports for 'grad' and 'jit' have been updated to use absolute imports.
 
 # Custom minimal graph implementation to replace networkx
 class DiGraph:
@@ -29,122 +37,49 @@ class DiGraph:
     def in_edges(self, node):
         return [(u, node) for u in self.nodes if node in self.edges.get(u, set())]
 
-# Placeholder for NextGenJax Numpy-like functionality
-class NextGenJaxNumpy:
+# Use JAX's built-in numpy and random functionality
+class AdvancedJaxNumpy:
     def __init__(self):
-        self.random = self.RandomModule()
+        self.random = jrandom
 
     class Array:
         def __init__(self, data):
-            self.data = data
-            self.shape = self._get_shape(data)
-
-        def _get_shape(self, data):
-            print("_get_shape input type:", type(data))
-            print("_get_shape input value:", data)
-            if isinstance(data, (int, float)):
-                return ()
-            elif isinstance(data, (list, tuple)):
-                return (len(data),) + self._get_shape(data[0]) if data else ()
-            elif isinstance(data, NextGenJaxNumpy.Array):
-                return data.shape
-            elif hasattr(data, 'shape'):
-                return data.shape
-            else:
-                print("Unsupported data type encountered")
-                raise ValueError(f"Unsupported data type: {type(data)}. Value: {data}")
+            self.data = jnp.array(data)
+            self.shape = self.data.shape
 
         def __getitem__(self, key):
-            if isinstance(key, tuple):
-                result = self.data
-                for k in key:
-                    result = result[k]
-                return result
-            else:
-                return self.data[key]
+            return self.data[key]
 
         def __setitem__(self, key, value):
-            if isinstance(key, tuple):
-                target = self.data
-                for k in key[:-1]:
-                    target = target[k]
-                target[key[-1]] = value
-            else:
-                self.data[key] = value
+            self.data = self.data.at[key].set(value)
 
         def __len__(self):
             return len(self.data)
 
         def flatten(self):
-            def flatten_helper(lst):
-                flattened = []
-                for el in lst:
-                    if isinstance(el, (list, tuple, NextGenJaxNumpy.Array)):
-                        flattened.extend(flatten_helper(el))
-                    else:
-                        flattened.append(el)
-                return flattened
-            return flatten_helper(self.data)
+            return self.data.flatten()
 
         def __add__(self, other):
-            def add_recursive(a, b):
-                if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-                    return a + b
-                elif isinstance(a, list) and isinstance(b, list):
-                    return [add_recursive(x, y) for x, y in zip(a, b)]
-                elif isinstance(a, list) and isinstance(b, (int, float)):
-                    return [add_recursive(x, b) for x in a]
-                elif isinstance(a, (int, float)) and isinstance(b, list):
-                    return [add_recursive(a, y) for y in b]
-                else:
-                    raise TypeError(f"Unsupported types for addition: {type(a)} and {type(b)}")
-
             if isinstance(other, (int, float)):
-                return self.__class__(add_recursive(self.data, other))
+                return self.__class__(self.data + other)
             elif isinstance(other, self.__class__):
-                return self.__class__(add_recursive(self.data, other.data))
+                return self.__class__(self.data + other.data)
             else:
                 raise TypeError(f"unsupported operand type(s) for +: '{self.__class__.__name__}' and '{type(other).__name__}'")
 
         def __radd__(self, other):
             return self.__add__(other)
 
-    class RandomModule:
-        def normal(self, loc=0.0, scale=1.0, size=None):
-            if not isinstance(loc, (int, float)) or not isinstance(scale, (int, float)):
-                raise ValueError("loc and scale must be numbers")
-            if scale <= 0:
-                raise ValueError("scale must be positive")
+    def array(self, data):
+        return self.Array(data)
 
-            def box_muller():
-                u1 = random.random()
-                u2 = random.random()
-                z0 = math.sqrt(-2.0 * math.log(u1)) * math.cos(2 * math.pi * u2)
-                return loc + scale * z0
+    def normal(self, loc=0.0, scale=1.0, size=None):
+        key = jrandom.PRNGKey(0)
+        return jrandom.normal(key, shape=size) * scale + loc
 
-            if size is None:
-                return box_muller()
-            if isinstance(size, int):
-                return NextGenJaxNumpy.Array([box_muller() for _ in range(size)])
-            if isinstance(size, tuple):
-                return NextGenJaxNumpy.Array(self._generate_nested_normal(size))
-            raise ValueError("Size must be None, an int, or a tuple of ints")
-
-        def _generate_nested_normal(self, shape):
-            if len(shape) == 0:
-                return self.normal()
-            return [self._generate_nested_normal(shape[1:]) for _ in range(shape[0])]
-
-        def randint(self, low, high, size=None):
-            if size is None:
-                return random.randint(low, high - 1)
-            if isinstance(size, int) or (isinstance(size, tuple) and len(size) == 1):
-                size = size[0] if isinstance(size, tuple) else size
-                return NextGenJaxNumpy.Array([random.randint(low, high - 1) for _ in range(size)])
-            elif isinstance(size, tuple):
-                return NextGenJaxNumpy.Array(self._generate_nested_randint(size, low, high))
-            else:
-                raise ValueError("Size must be None, an int, or a tuple of ints")
+    def randint(self, low, high, size=None):
+        key = jrandom.PRNGKey(0)
+        return jrandom.randint(key, shape=size, minval=low, maxval=high)
 
         def _generate_nested_randint(self, shape, low, high):
             if len(shape) == 0:
@@ -160,61 +95,22 @@ class NextGenJaxNumpy:
             raise ValueError("Shape must be an int or a tuple of ints")
 
     def _generate_nested_lists(self, shape, fill):
-        if len(shape) == 1:
-            return [fill] * shape[0]
-        return [self._generate_nested_lists(shape[1:], fill) for _ in range(shape[0])]
+        return jnp.full(shape, fill).tolist()
 
     def random_normal(self, shape, mean=0.0, std=1.0):
         return self.random.normal(loc=mean, scale=std, size=shape)
 
     def random(self, shape):
-        if isinstance(shape, int):
-            return self.Array([random.random() for _ in range(shape)])
-        elif isinstance(shape, tuple):
-            return self.Array(self._generate_nested_lists_with_random_uniform(shape))
-        else:
-            raise ValueError("Shape must be an int or a tuple of ints")
-
-    def _generate_nested_lists_with_random_uniform(self, shape):
-        if len(shape) == 1:
-            return [random.random() for _ in range(shape[0])]
-        return [self._generate_nested_lists_with_random_uniform(shape[1:]) for _ in range(shape[0])]
+        return jrandom.uniform(jrandom.PRNGKey(0), shape=shape)
 
     def array(self, data):
-        if isinstance(data, (int, float, list, tuple, NextGenJaxNumpy.Array)):
-            return self.Array(data)
-        elif hasattr(data, '__array__'):  # Support numpy-like arrays
-            return self.Array(data.__array__())
-        elif hasattr(data, 'tolist'):  # Support tensor-like objects
-            return self.Array(data.tolist())
-        else:
-            try:
-                return self.Array(list(data))  # Attempt to convert to list
-            except:
-                raise ValueError(f"Unsupported data type for array: {type(data)}")
+        return self.Array(jnp.array(data))
 
     def shape(self, arr):
-        if isinstance(arr, self.Array):
-            return arr.shape
-        elif isinstance(arr, (list, tuple)):
-            return (len(arr),) + self.shape(arr[0]) if arr else ()
-        else:
-            return ()
+        return jnp.shape(arr)
 
     def reshape(self, arr, new_shape):
-        if isinstance(arr, self.Array):
-            arr = arr.data
-        flat = self._flatten(arr)
-        if isinstance(new_shape, int):
-            new_shape = (new_shape,)
-        return self.Array(self._reshape_recursive(flat, new_shape))
-
-    def _reshape_recursive(self, flat, shape):
-        if len(shape) == 1:
-            return flat[:shape[0]]
-        size = shape[0]
-        sub_size = len(flat) // size
-        return [self._reshape_recursive(flat[i*sub_size:(i+1)*sub_size], shape[1:]) for i in range(size)]
+        return self.Array(jnp.reshape(arr, new_shape))
 
     def _flatten(self, arr):
         if isinstance(arr, (int, float)):
@@ -397,41 +293,18 @@ class NextGenJaxNumpy:
 
     def _pad_3d(self, array, pad_width):
         # Helper method to pad 3D arrays
-        padded = self.zeros((
-            self.shape(array)[0] + pad_width[0][0] + pad_width[0][1],
-            self.shape(array)[1] + pad_width[1][0] + pad_width[1][1],
-            self.shape(array)[2] + pad_width[2][0] + pad_width[2][1],
-            self.shape(array)[3] + pad_width[3][0] + pad_width[3][1],
-            self.shape(array)[4] + pad_width[4][0] + pad_width[4][1]
-        ))
-        padded[
-            pad_width[0][0]:self.shape(padded)[0]-pad_width[0][1],
-            pad_width[1][0]:self.shape(padded)[1]-pad_width[1][1],
-            pad_width[2][0]:self.shape(padded)[2]-pad_width[2][1],
-            pad_width[3][0]:self.shape(padded)[3]-pad_width[3][1],
-            pad_width[4][0]:self.shape(padded)[4]-pad_width[4][1]
-        ] = array
-        return padded
+        return jnp.pad(array, pad_width, mode='constant')
 
     @staticmethod
     def maximum(x, y):
-        if isinstance(x, (int, float)) and isinstance(y, (int, float)):
-            return max(x, y)
-        elif isinstance(x, NextGenJaxNumpy.Array) and isinstance(y, (int, float)):
-            return NextGenJaxNumpy.Array([max(xi, y) for xi in x.flatten()])
-        elif isinstance(x, (int, float)) and isinstance(y, NextGenJaxNumpy.Array):
-            return NextGenJaxNumpy.Array([max(x, yi) for yi in y.flatten()])
-        elif isinstance(x, NextGenJaxNumpy.Array) and isinstance(y, NextGenJaxNumpy.Array):
-            return NextGenJaxNumpy.Array([max(xi, yi) for xi, yi in zip(x.flatten(), y.flatten())])
-        else:
-            raise TypeError("Unsupported types for maximum operation")
+        return jnp.maximum(x, y)
 
     # Add other numpy-like methods as needed
 
-# Instantiate the NextGenJaxNumpy class for use in the model
-nnp = NextGenJaxNumpy()
+# Instantiate the AdvancedJaxNumpy class for use in the model
+nnp = AdvancedJaxNumpy()
 
-# Update the NextGenJax model to use the plugins for hardware acceleration
+# Update the Advanced JAX model to use hardware acceleration
 class NextGenJaxModel:
     def __init__(self, input_shape_3d=(64, 64, 64, 1), num_classes=10):
         # Initialize model parameters
@@ -440,10 +313,24 @@ class NextGenJaxModel:
         self.num_classes = num_classes
 
         # Initialize the plugins
+        self._initialize_plugins()
+
+        # Build the model
+        self.model = self.build_model()
+
+        # Initialize other components
+        self.neural_framework = self.AIPhoenix_NeuralFramework()
+        self.optimizer_kit = self.AIPhoenix_OptimizerKit()
+        self.speech_transcriber = self.AIPhoenix_SpeechTranscriber()
+        self.distributed_trainer = self.AIPhoenix_DistributedTrainer()
+
+    def _initialize_plugins(self):
+        from src.nextgenjax.plugins.cuda_plugin import CudaPlugin
+        from src.nextgenjax.plugins.nextgenjaxlib_plugin import NextGenJaxLib
         self.cuda_plugin = CudaPlugin()
         self.nextgenjaxlib = NextGenJaxLib()
 
-        # Initialize the NextGenJax model with advanced features inspired by the libraries
+        # Initialize the AdvancedJax model with advanced features inspired by the libraries
         self.neural_framework = self.AIPhoenix_NeuralFramework()
         self.graph_builder = self.AIPhoenix_GraphBuilder()
         self.language_router = self.AIPhoenix_LanguageRouter()
@@ -453,8 +340,20 @@ class NextGenJaxModel:
         self.speech_transcriber = self.AIPhoenix_SpeechTranscriber()
         self.distributed_trainer = self.AIPhoenix_DistributedTrainer()
 
-        # Build the model
-        self.model = self.build_model()
+    def to_device(self, tensor, device=None):
+        if isinstance(tensor, jnp.ndarray):
+            # JAX arrays are already on the default device
+            return tensor
+        elif isinstance(tensor, torch.Tensor):
+            if device is None:
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            return tensor.to(device)
+        else:
+            raise TypeError(f"Unsupported tensor type: {type(tensor)}")
+
+    # Build the model
+    def build_model(self):
+        return self.AIPhoenix_NeuralFramework()
 
     def to_device(self, tensor):
         # Use the NextGenJaxLib plugin to move tensor to the device
@@ -481,6 +380,8 @@ class NextGenJaxModel:
 
     def AIPhoenix_NeuralFramework(self):
         # Inspired by Flax's neural network API
+        import jax.numpy as jnp
+
         class Input:
             def __init__(self, shape):
                 self.shape = shape
@@ -488,27 +389,29 @@ class NextGenJaxModel:
         class LSTM:
             def __init__(self, units):
                 self.units = units
-                self.W = nnp.random_normal((units, units * 4))
-                self.U = nnp.random_normal((units, units * 4))
-                self.b = nnp.zeros((units * 4,))
+                key = jax.random.PRNGKey(0)  # Initialize a random key
+                self.W = jax.random.normal(key, (units, units * 4))
+                key, subkey = jax.random.split(key)
+                self.U = jax.random.normal(subkey, (units, units * 4))
+                self.b = jnp.zeros((units * 4,))
 
             def __call__(self, x, h, c):
-                gates = nnp.dot(x, self.W) + nnp.dot(h, self.U) + self.b
-                i, f, o, g = nnp.split(gates, 4, axis=-1)
-                i, f, o, g = nnp.sigmoid(i), nnp.sigmoid(f), nnp.sigmoid(o), nnp.tanh(g)
+                gates = jnp.dot(x, self.W) + jnp.dot(h, self.U) + self.b
+                i, f, o, g = jnp.split(gates, 4, axis=-1)
+                i, f, o, g = jnp.sigmoid(i), jnp.sigmoid(f), jnp.sigmoid(o), jnp.tanh(g)
                 c = f * c + i * g
-                h = o * nnp.tanh(c)
+                h = o * jnp.tanh(c)
                 return h, c
 
         class Dense:
             def __init__(self, units, activation=None):
                 self.units = units
                 self.activation = activation
-                self.W = nnp.random_normal((units,))
-                self.b = nnp.zeros((units,))
+                self.W = jax.random.normal(jax.random.PRNGKey(0), (units,))
+                self.b = jnp.zeros((units,))
 
             def __call__(self, x):
-                output = nnp.dot(x, self.W) + self.b
+                output = jnp.dot(x, self.W) + self.b
                 return self.activation(output) if self.activation else output
 
         class Conv2D:
@@ -518,11 +421,11 @@ class NextGenJaxModel:
                 self.strides = strides
                 self.padding = padding
                 self.activation = activation
-                self.W = nnp.random_normal(kernel_size + (filters,))
-                self.b = nnp.zeros((filters,))
+                self.W = jax.random.normal(jax.random.PRNGKey(0), kernel_size + (filters,))
+                self.b = jnp.zeros((filters,))
 
             def __call__(self, x):
-                output = nnp.conv2d(x, self.W, strides=self.strides, padding=self.padding) + self.b
+                output = jnp.conv2d(x, self.W, strides=self.strides, padding=self.padding) + self.b
                 return self.activation(output) if self.activation else output
 
         class MaxPooling2D:
@@ -532,7 +435,25 @@ class NextGenJaxModel:
                 self.padding = padding
 
             def __call__(self, x):
-                return nnp.max_pool2d(x, self.pool_size, self.strides, self.padding)
+                return jax.lax.reduce_window(x, -jnp.inf, jax.lax.max, self.pool_size, self.strides, self.padding)
+
+        class MaxPooling3D:
+            def __init__(self, pool_size=(2, 2, 2), strides=None, padding='valid'):
+                self.pool_size = pool_size
+                self.strides = strides if strides is not None else pool_size
+                self.padding = padding
+
+            def __call__(self, x):
+                return jax.lax.reduce_window(x, -jnp.inf, jax.lax.max, self.pool_size, self.strides, self.padding)
+
+        class MaxPooling3D:
+            def __init__(self, pool_size=(2, 2, 2), strides=None, padding='valid'):
+                self.pool_size = pool_size
+                self.strides = strides if strides is not None else pool_size
+                self.padding = padding
+
+            def __call__(self, x):
+                return jax.lax.reduce_window(x, -jnp.inf, jax.lax.max, self.pool_size, self.strides, self.padding)
 
         class Conv3D:
             def __init__(self, filters, kernel_size, strides=(1, 1, 1), padding='valid', activation=None):
@@ -544,18 +465,23 @@ class NextGenJaxModel:
                 # Initialize W with 5 dimensions: (depth, height, width, in_channels, out_channels)
                 # Note: in_channels will be set when __call__ is first invoked
                 self.W = None
-                self.b = nnp.zeros((filters,))
+                self.b = jnp.zeros((filters,))
 
             def __call__(self, x):
                 if self.W is None:
                     in_channels = x.shape[-1]
-                    self.W = nnp.random_normal((self.kernel_size[0], self.kernel_size[1], self.kernel_size[2], in_channels, self.filters))
+                    self.W = jax.random.normal(jax.random.PRNGKey(0), (self.kernel_size[0], self.kernel_size[1], self.kernel_size[2], in_channels, self.filters))
 
                 print(f"Conv3D input shape: {x.shape}")
                 print(f"Conv3D filter shape: {self.W.shape}")
                 print(f"Conv3D strides: {self.strides}")
                 print(f"Conv3D padding: {self.padding}")
-                output = nnp.conv3d(x, self.W, strides=self.strides, padding=self.padding) + self.b
+                output = jax.lax.conv_general_dilated(
+                    x, self.W,
+                    window_strides=self.strides,
+                    padding=self.padding,
+                    dimension_numbers=('NDHWC', 'DHWIO', 'NDHWC')
+                ) + self.b
                 print(f"Conv3D output shape: {output.shape}")
                 return self.activation(output) if self.activation else output
 
@@ -566,7 +492,7 @@ class NextGenJaxModel:
                 self.padding = padding
 
             def __call__(self, x):
-                return nnp.max_pool3d(x, self.pool_size, self.strides, self.padding)
+                return jnp.max_pool3d(x, self.pool_size, self.strides, self.padding)
 
         class Flatten:
             def __call__(self, x):
@@ -577,7 +503,7 @@ class NextGenJaxModel:
                 self.axis = axis
 
             def __call__(self, inputs):
-                return nnp.concatenate(inputs, axis=self.axis)
+                return jnp.concatenate(inputs, axis=self.axis)
 
         class AdvancedNeuralNetwork:
             def __init__(self, layers):
@@ -598,14 +524,14 @@ class NextGenJaxModel:
                     if isinstance(x, list):
                         print("Layer input (list) types:", [type(xi) for xi in x])
                         try:
-                            x = [layer(xi if isinstance(xi, NextGenJaxNumpy.Array) else nnp.array(xi)) for xi in x]
+                            x = [layer(xi if isinstance(xi, jnp.ndarray) else jnp.array(xi)) for xi in x]
                         except Exception as e:
                             print(f"Error in layer {i} (list input): {str(e)}")
                             raise
                     else:
                         print("Layer input type:", type(x))
                         try:
-                            x = layer(x if isinstance(x, NextGenJaxNumpy.Array) else nnp.array(x))
+                            x = layer(x if isinstance(x, jnp.ndarray) else jnp.array(x))
                         except Exception as e:
                             print(f"Error in layer {i} (single input): {str(e)}")
                             raise
@@ -615,26 +541,26 @@ class NextGenJaxModel:
         # Create and return an instance of AdvancedNeuralNetwork with predefined layers
         layers_3d = [
             Input(shape=self.input_shape_3d),
-            Conv3D(32, (3, 3, 3), activation=lambda x: nnp.maximum(x, 0)),
+            Conv3D(32, (3, 3, 3), activation=lambda x: jnp.maximum(x, 0)),
             MaxPooling3D((2, 2, 2)),
-            Conv3D(64, (3, 3, 3), activation=lambda x: nnp.maximum(x, 0)),
+            Conv3D(64, (3, 3, 3), activation=lambda x: jnp.maximum(x, 0)),
             MaxPooling3D((2, 2, 2)),
             Flatten(),
         ]
 
         layers_2d = [
             Input(shape=self.input_shape_2d),
-            Conv2D(32, (3, 3), activation=lambda x: nnp.maximum(x, 0)),
+            Conv2D(32, (3, 3), activation=lambda x: jnp.maximum(x, 0)),
             MaxPooling2D((2, 2)),
-            Conv2D(64, (3, 3), activation=lambda x: nnp.maximum(x, 0)),
+            Conv2D(64, (3, 3), activation=lambda x: jnp.maximum(x, 0)),
             MaxPooling2D((2, 2)),
             Flatten(),
         ]
 
         combined_layers = [
             Concatenate(),
-            Dense(128, activation=lambda x: nnp.maximum(x, 0)),
-            Dense(self.num_classes, activation=lambda x: nnp.exp(x) / nnp.sum(nnp.exp(x), axis=-1, keepdims=True))
+            Dense(128, activation=lambda x: jnp.maximum(x, 0)),
+            Dense(self.num_classes, activation=lambda x: jnp.exp(x) / jnp.sum(jnp.exp(x), axis=-1, keepdims=True))
         ]
 
         return AdvancedNeuralNetwork(layers_3d + layers_2d + combined_layers)
@@ -784,6 +710,9 @@ class NextGenJaxModel:
 
     def AIPhoenix_OptimizerKit(self):
         # Inspired by Optax's optimization library
+        import jax
+        import jax.numpy as jnp
+
         class OptimizerKit:
             def __init__(self):
                 self.optimizers = {
@@ -793,12 +722,12 @@ class NextGenJaxModel:
                 }
 
             def sgd(self, params, grads, learning_rate=0.01):
-                return tree_map(lambda p, g: p - learning_rate * g, params, grads)
+                return jax.tree_map(lambda p, g: p - learning_rate * g, params, grads)
 
             def adam(self, params, grads, state=None, learning_rate=0.001, beta1=0.9, beta2=0.999, eps=1e-8):
                 if state is None:
-                    state = {'m': tree_map(nnp.zeros_like, params),
-                             'v': tree_map(nnp.zeros_like, params),
+                    state = {'m': jax.tree_map(jnp.zeros_like, params),
+                             'v': jax.tree_map(jnp.zeros_like, params),
                              't': 0}
 
                 state['t'] += 1
@@ -806,26 +735,26 @@ class NextGenJaxModel:
 
                 def update(param, grad, m, v):
                     m = beta1 * m + (1 - beta1) * grad
-                    v = beta2 * v + (1 - beta2) * nnp.square(grad)
+                    v = beta2 * v + (1 - beta2) * jnp.square(grad)
                     m_hat = m / (1 - beta1**t)
                     v_hat = v / (1 - beta2**t)
-                    param = param - learning_rate * m_hat / (nnp.sqrt(v_hat) + eps)
+                    param = param - learning_rate * m_hat / (jnp.sqrt(v_hat) + eps)
                     return param, m, v
 
-                new_params, new_m, new_v = tree_map(update, params, grads, state['m'], state['v'])
+                new_params, new_m, new_v = jax.tree_map(update, params, grads, state['m'], state['v'])
                 new_state = {'m': new_m, 'v': new_v, 't': t}
                 return new_params, new_state
 
             def rmsprop(self, params, grads, state=None, learning_rate=0.01, decay=0.9, eps=1e-8):
                 if state is None:
-                    state = tree_map(nnp.zeros_like, params)
+                    state = jax.tree_map(jnp.zeros_like, params)
 
                 def update(param, grad, s):
-                    s = decay * s + (1 - decay) * nnp.square(grad)
-                    param = param - learning_rate * grad / (nnp.sqrt(s) + eps)
+                    s = decay * s + (1 - decay) * jnp.square(grad)
+                    param = param - learning_rate * grad / (jnp.sqrt(s) + eps)
                     return param, s
 
-                new_params, new_state = tree_map(update, params, grads, state)
+                new_params, new_state = jax.tree_map(update, params, grads, state)
                 return new_params, new_state
 
             def create_optimizer(self, name, **kwargs):
@@ -837,6 +766,8 @@ class NextGenJaxModel:
 
     def AIPhoenix_SpeechTranscriber(self):
         # Inspired by Whisper's speech-to-text capabilities
+        import jax.numpy as jnp
+
         class SimpleSpeechTranscriber:
             def __init__(self, sample_rate=16000, n_fft=400, hop_length=160):
                 self.sample_rate = sample_rate
@@ -876,6 +807,10 @@ class NextGenJaxModel:
 
     def AIPhoenix_DistributedTrainer(self):
         # Inspired by FairScale's distributed training techniques
+        import jax
+        from jax import pmap
+        from jax.tree_util import tree_map
+
         class DistributedTrainer:
             def __init__(self, num_devices=1):
                 self.num_devices = num_devices
@@ -910,8 +845,8 @@ class NextGenJaxModel:
 
     def process_input(self, input_3d, input_2d):
         try:
-            input_3d_tensor = nnp.array(input_3d)
-            input_2d_tensor = nnp.array(input_2d)
+            input_3d_tensor = jax.numpy.array(input_3d)
+            input_2d_tensor = jax.numpy.array(input_2d)
         except ValueError as e:
             print(f"Error creating array: {e}")
             print(f"input_3d type: {type(input_3d)}, shape: {getattr(input_3d, 'shape', 'N/A')}")
@@ -921,15 +856,17 @@ class NextGenJaxModel:
 
     # Additional methods for advanced features
     def advanced_memory_processing(self, data: Any) -> Any:
+        import jax.numpy as jnp
         chunk_size = 1000
         processed_data = []
         for i in range(0, len(data), chunk_size):
             chunk = data[i:i+chunk_size]
-            processed_chunk = nnp.fft.ifft(nnp.fft.fft(chunk)).real
+            processed_chunk = jnp.fft.ifft(jnp.fft.fft(chunk)).real
             processed_data.append(processed_chunk)
-        return nnp.concatenate(processed_data)
+        return jnp.concatenate(processed_data)
 
     def complex_decision_making(self, input_data: Any) -> Any:
+        import jax.numpy as nnp
         if nnp.mean(input_data) > 0.5:
             if nnp.std(input_data) < 0.1:
                 return nnp.ones_like(input_data)

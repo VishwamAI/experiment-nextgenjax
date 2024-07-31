@@ -1,11 +1,11 @@
-# Reorganization Plan for `experiment-nextgenjax` Repository
+# Reorganization Plan for `experiment-advancedjax` Repository
 
 ## Proposed New Directory Structure
 
 ```
-experiment-nextgenjax/
+experiment-advancedjax/
 ├── docs/
-│   ├── NextGenJax_documentation.md
+│   ├── AdvancedJax_documentation.md
 │   ├── API_Documentation.md
 │   ├── Development_Guide.md
 │   └── Testing_Guide.md
@@ -24,15 +24,14 @@ experiment-nextgenjax/
 │   ├── __init__.py
 │   ├── config.py
 │   ├── data_preprocessing.py
-│   ├── nextgenjax_model.py
+│   ├── jax_model.py
 │   ├── set_path_and_test.py
 │   ├── test_gym_environments.py
-│   ├── test_nextgenjax_functionality.py
+│   ├── test_advancedjax_functionality.py
 │   ├── test_plugin_integration.py
 │   ├── test_time_aware_observation.py
 │   ├── inference/
 │   ├── model/
-│   ├── nextgenjax/
 │   ├── tests/
 │   └── training/
 ├── tests/
@@ -52,13 +51,13 @@ experiment-nextgenjax/
 
 ## Naming Conventions
 
-- **Directories**: Use lowercase with underscores to separate words (e.g., `data_preprocessing`, `nextgenjax_model`).
+- **Directories**: Use lowercase with underscores to separate words (e.g., `data_preprocessing`, `jax_model`).
 - **Files**: Use lowercase with underscores to separate words (e.g., `run_inference.py`, `test_gym_environments.py`).
 - **Documentation**: Use clear and descriptive names that indicate the purpose of the document (e.g., `API_Documentation.md`, `Development_Guide.md`).
 
 ## Recommendations for Additional Documentation
 
-1. **API Documentation**: Create a comprehensive API documentation file (`API_Documentation.md`) that details the functions, classes, and modules available in the NextGenJax framework. This will help developers understand the available functionalities and how to use them.
+1. **API Documentation**: Create a comprehensive API documentation file (`API_Documentation.md`) that details the functions, classes, and modules available in the AdvancedJax framework. This will help developers understand the available functionalities and how to use them.
 
 2. **Development Guide**: Create a `Development_Guide.md` file that outlines the development workflow, including:
    - Branching strategy (e.g., feature branches, main branch)
@@ -74,7 +73,7 @@ experiment-nextgenjax/
 
 1. **Custom Implementations**: Clearly document which components are custom-built and which are based on existing libraries. This can be included in the API documentation and the development guide.
 
-2. **Integration of Inspired Capabilities**: Provide examples and explanations of how design principles from various libraries are incorporated into the NextGenJax framework. This can be included in the development guide and the testing guide.
+2. **Integration of Inspired Capabilities**: Provide examples and explanations of how design principles from various libraries are incorporated into the AdvancedJax framework. This can be included in the development guide and the testing guide.
 
 3. **Development Workflow**: Define the development workflow explicitly in the development guide, including the branching strategy, code review process, and continuous integration practices.
 
