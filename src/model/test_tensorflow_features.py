@@ -1,10 +1,9 @@
 import tensorflow as tf
-from tensorflow.keras import mixed_precision
-from tensorflow.keras.mixed_precision import LossScaleOptimizer
 import gc
 import psutil
 import logging
 import tracemalloc
+from src.nextgenjax.nextgenjax_model import NextGenJaxModel, nnp
 
 tf.keras.backend.set_floatx('float16')
 
