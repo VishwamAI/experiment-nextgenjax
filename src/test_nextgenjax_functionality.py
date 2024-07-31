@@ -1,7 +1,7 @@
-from nextgenjax.nextgenjax_model import NextGenJaxModel, nnp
-from nextgenjax.grad.grad import grad
-from nextgenjax.jit.jit import jit
-from nextgenjax.pmap.pmap import pmap
+from src.nextgenjax_model import NextGenJaxModel, nnp
+from src.nextgenjax.grad.grad import grad
+from src.nextgenjax.jit.jit import jit
+from src.nextgenjax.pmap.pmap import pmap
 import scipy as sp
 import matplotlib.pyplot as plt
 import jaxlib

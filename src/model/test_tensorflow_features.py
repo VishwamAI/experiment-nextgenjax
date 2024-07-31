@@ -3,7 +3,7 @@ import gc
 import psutil
 import logging
 import tracemalloc
-from src.nextgenjax.nextgenjax_model import NextGenJaxModel, nnp
+from src.nextgenjax_model import NextGenJaxModel, nnp
 
 tf.keras.backend.set_floatx('float16')
 

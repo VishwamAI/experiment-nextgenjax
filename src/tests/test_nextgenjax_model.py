@@ -1,6 +1,6 @@
 import unittest
 import tensorflow as tf
-from nextgenjax.nextgenjax_model import NextGenJaxModel
+from src.nextgenjax_model import NextGenJaxModel
 
 class TestNextGenJaxModel(unittest.TestCase):
 

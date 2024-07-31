@@ -33,7 +33,7 @@ import random as py_random
 import math
 
 # Import NextGenJaxModel
-from .nextgenjax_model import NextGenJaxModel
+from src.nextgenjax_model import NextGenJaxModel
 
 # Define __all__ to specify what should be imported when using "from nextgenjax import *"
 __all__ = [

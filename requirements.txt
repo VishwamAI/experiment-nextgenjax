@@ -1,4 +1,17 @@
-numpy
+numpy>=1.24
+tensorflow==2.8.0
+torch==1.11.0
+jax==0.3.13
+jaxlib==0.4.31
+transformers==4.18.0
+scipy>=1.10
+matplotlib==3.5.2
+scikit-learn==1.0.2
+gym==0.21.0
+librosa==0.9.1
+opencv-python==4.5.5.64
+pillow==9.1.1
+pytest==7.1.2
 
 # The following are custom modules and do not exist as installable packages on PyPI.
 # Instead, they represent components to be developed within the NextGenJax project.

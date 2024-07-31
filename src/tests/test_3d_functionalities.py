@@ -12,7 +12,7 @@ from nextgenjax.components.reinforcement_learning_module import ReinforcementLea
 from nextgenjax.components.building_mechanisms import BuildingMechanism
 from nextgenjax.components.benchmarks import Benchmarks
 from nextgenjax.components.three_d_preprocessing_utils import load_3d_data, normalize_3d_data, augment_3d_data, transform_3d_data
-from nextgenjax.nextgenjax_model import NextGenJaxModel
+from src.nextgenjax_model import NextGenJaxModel
 
 class Test3DFunctionalities(unittest.TestCase):
 

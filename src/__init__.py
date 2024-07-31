@@ -1,1 +1,1 @@
-from nextgenjax.nextgenjax_model import NextGenJaxModel, nnp
+from src.nextgenjax_model import NextGenJaxModel, nnp

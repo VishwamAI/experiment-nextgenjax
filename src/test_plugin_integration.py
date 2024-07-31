@@ -1,5 +1,4 @@
-
-from nextgenjax.nextgenjax_model import NextGenJaxModel
+from src.nextgenjax_model import NextGenJaxModel
 
 # Instantiate the model
 model = NextGenJaxModel()
