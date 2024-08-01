@@ -2,12 +2,14 @@
 import jax
 import jax.numpy as jnp
 import jax.random as jrandom
-from jax import tree_map, pmap
+from jax import grad, jit, pmap, tree_map
 
 # Standard Python libraries
 from typing import List, Tuple, Callable, Dict, Any
 import random
 import math
+import scipy as sp
+import matplotlib.pyplot as plt
 
 # Optimization and testing libraries
 import optax  # Optimization algorithms for JAX
@@ -21,20 +23,27 @@ import torch.optim as optim
 import tensorflow as tf
 import tensorflow_hub as hub
 import tensorflow_text as text
+
+# Add print statements for debugging
+import sys
+print("Python path:", sys.path)
+
+print("Attempting to import sonnet...")
 import sonnet as snt  # DeepMind's neural network library
+print("Sonnet imported successfully")
+print("Sonnet version:", snt.__version__)
+print("Sonnet path:", snt.__file__)
+
+# Note: Removed import of 'synjax' as it is not a real package and not required for the project.
 
 # Libraries for reinforcement learning and control
 import mujoco
 import dm_control
 import rlax
-import reverb  # DeepMind's replay buffer library
 import envlogger  # Environment logging for RL
-import Gym #openai 
+import gym #openai
 # Libraries for probabilistic and Bayesian deep learning
 import distrax  # Probability distributions and transformations in JAX
-from enn.loggers import TerminalLogger
-from enn import losses, networks, supervised
-from enn.supervised import regression_data
 
 # Libraries for advanced mathematical operations and datasets
 import mathematics_dataset  # For generating and analyzing mathematical problems
@@ -49,9 +58,6 @@ import penzai
 
 # Libraries for advanced optimization techniques
 import kfac_jax  # K-FAC optimization in JAX
-
-# Libraries for natural language processing and routing
-from routellm.controller import Controller
 
 # Libraries for recurrent neural networks and time series analysis
 from disentangled_rnns.library import get_datasets, two_armed_bandits, rnn_utils, disrnn
@@ -318,9 +324,6 @@ class NextGenJaxModel:
         self.distributed_trainer = self.AIPhoenix_DistributedTrainer()
 
         # Initialize disrnn model parameters
-        self.update_mlp_shape = (5, 5, 5)
-        self.choice_mlp_shape = (2, 2)
-        self.latent_size = 5
         self.disrnn_model = self._initialize_disrnn_model()
 
         # Initialize PyTorch model
@@ -328,6 +331,7 @@ class NextGenJaxModel:
 
         # Initialize mathematics dataset
         self.math_dataset = self._initialize_math_dataset()
+
     def _initialize_plugins(self):
         from src.nextgenjax.plugins.cuda_plugin import CudaPlugin
         from src.nextgenjax.plugins.nextgenjaxlib_plugin import NextGenJaxLib
@@ -435,7 +439,12 @@ class NextGenJaxModel:
                 print(f"Conv3D filter shape: {self.W.shape}")
                 print(f"Conv3D strides: {self.strides}")
                 print(f"Conv3D padding: {self.padding}")
-                output = self.nnp.conv3d(x, self.W, strides=self.strides, padding=self.padding) + self.b
+                output = jax.lax.conv_general_dilated(
+                    x, self.W,
+                    window_strides=self.strides,
+                    padding=self.padding,
+                    dimension_numbers=('NDHWC', 'DHWIO', 'NDHWC')
+                ) + self.b
                 print(f"Conv3D output shape: {output.shape}")
                 return self.activation(output) if self.activation else output
 
@@ -446,21 +455,22 @@ class NextGenJaxModel:
                 self.padding = padding
 
             def __call__(self, x):
-                return self.nnp.max_pool3d(x, self.pool_size, self.strides, self.padding)
+                return jax.lax.reduce_window(x, -jnp.inf, jax.lax.max, self.pool_size, self.strides, self.padding)
 
         class Flatten:
             def __call__(self, x):
-                return x.reshape((x.shape[0], -1))
+                return jnp.reshape(x, (x.shape[0], -1))
 
         class Concatenate:
             def __init__(self, axis=-1):
                 self.axis = axis
 
             def __call__(self, inputs):
-                return self.nnp.concatenate(inputs, axis=self.axis)
+                return jnp.concatenate(inputs, axis=self.axis)
 
-        class AdvancedNeuralNetwork:
+        class AdvancedNeuralNetwork(hk.Module):
             def __init__(self, layers):
+                super().__init__()
                 self.input_layers = [layer for layer in layers if isinstance(layer, Input)]
                 self.processing_layers = [layer for layer in layers if not isinstance(layer, Input)]
 
@@ -478,14 +488,14 @@ class NextGenJaxModel:
                     if isinstance(x, list):
                         print("Layer input (list) types:", [type(xi) for xi in x])
                         try:
-                            x = [layer(xi if isinstance(xi, NextGenJaxNumpy.Array) else self.nnp.array(xi)) for xi in x]
+                            x = [layer(xi) for xi in x]
                         except Exception as e:
                             print(f"Error in layer {i} (list input): {str(e)}")
                             raise
                     else:
                         print("Layer input type:", type(x))
                         try:
-                            x = layer(x if isinstance(x, NextGenJaxNumpy.Array) else self.nnp.array(x))
+                            x = layer(x)
                         except Exception as e:
                             print(f"Error in layer {i} (single input): {str(e)}")
                             raise
@@ -495,30 +505,33 @@ class NextGenJaxModel:
         # Create and return an instance of AdvancedNeuralNetwork with predefined layers
         layers_3d = [
             Input(shape=self.input_shape_3d),
-            Conv3D(32, (3, 3, 3), activation=lambda x: self.nnp.maximum(x, 0)),
+            Conv3D(32, (3, 3, 3), activation=jax.nn.relu),
             MaxPooling3D((2, 2, 2)),
-            Conv3D(64, (3, 3, 3), activation=lambda x: self.nnp.maximum(x, 0)),
+            Conv3D(64, (3, 3, 3), activation=jax.nn.relu),
             MaxPooling3D((2, 2, 2)),
             Flatten(),
         ]
 
         layers_2d = [
             Input(shape=self.input_shape_2d),
-            Conv2D(32, (3, 3), activation=lambda x: self.nnp.maximum(x, 0)),
+            Conv2D(32, (3, 3), activation=jax.nn.relu),
             MaxPooling2D((2, 2)),
-            Conv2D(64, (3, 3), activation=lambda x: self.nnp.maximum(x, 0)),
+            Conv2D(64, (3, 3), activation=jax.nn.relu),
             MaxPooling2D((2, 2)),
             Flatten(),
         ]
 
         combined_layers = [
             Concatenate(),
-            Dense(128, activation=lambda x: self.nnp.maximum(x, 0)),
-            Dense(self.num_classes, activation=lambda x: self.nnp.exp(x) / self.nnp.sum(self.nnp.exp(x), axis=-1, keepdims=True))
+            hk.Linear(128),
+            jax.nn.relu,
+            hk.Linear(self.num_classes),
+            jax.nn.softmax
         ]
 
-        return AdvancedNeuralNetwork(layers_3d + layers_2d + combined_layers)
+        return hk.transform(lambda x: AdvancedNeuralNetwork(layers_3d + layers_2d + combined_layers)(x))
 
+    @jit
     def AIPhoenix_GraphBuilder(self):
         # Inspired by DM-Haiku's composable function transformations
         class ComputationalGraph:
@@ -572,20 +585,25 @@ class NextGenJaxModel:
 
     def AIPhoenix_LanguageRouter(self):
         # Inspired by RouteLL's language routing capabilities
-        class LanguageRouter:
+        class LanguageRouter(hk.Module):
             def __init__(self, num_languages: int, embedding_dim: int):
-                self.language_embeddings = self.nnp.random.normal(size=(num_languages, embedding_dim))
-                self.routing_network = None  # Placeholder, to be initialized externally
+                super().__init__()
+                self.language_embeddings = hk.get_parameter("language_embeddings",
+                                                            shape=[num_languages, embedding_dim],
+                                                            init=hk.initializers.RandomNormal())
+                self.routing_network = hk.Sequential([
+                    hk.Linear(64), jax.nn.relu,
+                    hk.Linear(32), jax.nn.relu,
+                    hk.Linear(num_languages), jax.nn.softmax
+                ])
 
-            def route(self, input_text: str, language_id: int):
-                if self.routing_network is None:
-                    return 0  # Default routing decision
+            def __call__(self, input_text: str, language_id: int):
                 # Simplified text embedding (in practice, use a proper text encoder)
-                text_embedding = self.nnp.mean(self.nnp.array([ord(c) for c in input_text]))
+                text_embedding = jnp.mean(jnp.array([ord(c) for c in input_text]))
                 language_embedding = self.language_embeddings[language_id]
-                combined_embedding = self.nnp.concatenate([text_embedding, language_embedding])
+                combined_embedding = jnp.concatenate([text_embedding, language_embedding])
                 routing_decision = self.routing_network(combined_embedding)
-                return self.nnp.argmax(routing_decision)
+                return jnp.argmax(routing_decision)
 
             def add_language(self, language_embedding: Any):
                 self.language_embeddings = self.nnp.vstack([self.language_embeddings, language_embedding])
