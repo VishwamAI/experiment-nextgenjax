@@ -12,6 +12,8 @@ import optax
 import chex
 import haiku as hk
 
+# Removed import statement for 'synjax' as it is not a known library and caused a ModuleNotFoundError.
+
 print("Attempting to import NextGenJaxModel...")
 from nextgenjax.nextgenjax_model import NextGenJaxModel
 print("NextGenJaxModel imported successfully")
