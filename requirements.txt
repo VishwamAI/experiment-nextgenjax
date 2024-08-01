@@ -40,7 +40,7 @@ rlax==0.1.6
 routellm==0.2.0
 scikit-learn==1.3.2
 scipy==1.10.0
-sonnet
+sonnet==2.0.0  # Compatible version for Python 3.8 and TensorFlow 2.17.0
 tensorflow==2.17.0  # Updated to match installed version
 tensorflow-datasets==4.9.4
 tensorflow-hub==0.15.0
