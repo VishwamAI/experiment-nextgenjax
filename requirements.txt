@@ -17,9 +17,7 @@ envlogger==1.2
 # ferminet  # Commented out as it's not available in PyPI
 gym==0.26.2
 iris==1.0.7
-jax==0.4.20
 jax-privacy==0.3.0
-jaxlib==0.4.20
 jmp==0.0.4
 jraph==0.0.6.dev0
 langchain==0.0.352
@@ -65,3 +63,7 @@ networkx>=2.8
 # media_conversion - Media conversion module
 # aliases - Module for managing aliases of components
 # advanced_reasoning_module - Advanced reasoning module
+
+# Platform-specific dependencies
+jax==0.4.20; sys_platform != "win32"
+jaxlib==0.4.20; sys_platform != "win32"
