@@ -60,7 +60,8 @@ import penzai
 import kfac_jax  # K-FAC optimization in JAX
 
 # Libraries for recurrent neural networks and time series analysis
-from disentangled_rnns.library import get_datasets, two_armed_bandits, rnn_utils, disrnn
+# Note: 'disentangled_rnns' module is not available and has been removed to resolve import errors.
+# from disentangled_rnns.library import get_datasets, two_armed_bandits, rnn_utils, disrnn
 
 # Additional utility libraries
 import tf2jax
@@ -323,8 +324,8 @@ class NextGenJaxModel:
         self.speech_transcriber = self.AIPhoenix_SpeechTranscriber()
         self.distributed_trainer = self.AIPhoenix_DistributedTrainer()
 
-        # Initialize disrnn model parameters
-        self.disrnn_model = self._initialize_disrnn_model()
+        # Note: 'disrnn_model' initialization has been removed due to the unavailability of the 'disentangled_rnns' module
+        # self.disrnn_model = self._initialize_disrnn_model()
 
         # Initialize PyTorch model
         self.pytorch_model = self._initialize_pytorch_model()
@@ -835,15 +836,16 @@ class NextGenJaxModel:
         input_tensor = torch.from_numpy(input_3d).float().view(-1, self.input_shape_3d[0] * self.input_shape_3d[1] * self.input_shape_3d[2] * self.input_shape_3d[3])
         return self.pytorch_model(input_tensor)
 
-    def make_network(self):
-        update_mlp_shape = (5, 5, 5)
-        choice_mlp_shape = (2, 2)
-        latent_size = 5
+    # Note: 'disrnn' module is not available and has been removed to resolve import errors.
+    # def make_network(self):
+    #     update_mlp_shape = (5, 5, 5)
+    #     choice_mlp_shape = (2, 2)
+    #     latent_size = 5
 
-        return disrnn.HkDisRNN(update_mlp_shape=update_mlp_shape,
-                               choice_mlp_shape=choice_mlp_shape,
-                               latent_size=latent_size,
-                               obs_size=2, target_size=2)
+    #     return disrnn.HkDisRNN(update_mlp_shape=update_mlp_shape,
+    #                            choice_mlp_shape=choice_mlp_shape,
+    #                            latent_size=latent_size,
+    #                            obs_size=2, target_size=2)
 
     # Additional methods for advanced features
     def advanced_memory_processing(self, data: Any) -> Any:
