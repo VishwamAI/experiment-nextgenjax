@@ -1,6 +1,5 @@
 # Google DeepMind libraries and other dependencies integrated into the NextGenJax model
 
-brave
 calm
 chex
 csuite
