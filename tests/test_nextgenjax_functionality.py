@@ -1,3 +1,7 @@
+import sys
+print("Starting test_nextgenjax_functionality.py")
+print("Python path:", sys.path)
+
 from jax import grad, jit, pmap
 import scipy as sp
 import matplotlib.pyplot as plt
@@ -7,7 +11,11 @@ import jax.random as jrandom
 import optax
 import chex
 import haiku as hk
+
+print("Attempting to import NextGenJaxModel...")
 from nextgenjax.nextgenjax_model import NextGenJaxModel
+print("NextGenJaxModel imported successfully")
+print("NextGenJaxModel path:", NextGenJaxModel.__file__)
 
 # Instantiate the model
 model = NextGenJaxModel()
