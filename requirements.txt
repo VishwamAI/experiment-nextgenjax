@@ -1,7 +1,7 @@
 # Google DeepMind libraries and other dependencies integrated into the NextGenJax model
 
 calm==0.1.4
-chex==0.1.8  # Specify a compatible version for Python 3.8
+chex==0.1.7  # Compatible version for Python 3.8
 # csuite  # Commented out as it's not available in PyPI
 # disentangled-rnns  # Commented out as it's not available in PyPI
 distrax==0.1.5
