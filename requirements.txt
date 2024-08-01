@@ -2,7 +2,7 @@
 
 calm
 chex
-csuite
+# csuite  # Commented out as it's not available in PyPI
 disentangled-rnns
 distrax
 dm-control
