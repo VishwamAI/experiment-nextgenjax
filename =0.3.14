@@ -1,7 +1,0 @@
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: jax in /home/ubuntu/.local/lib/python3.10/site-packages (0.3.13)
-Requirement already satisfied: typing-extensions in /home/ubuntu/.local/lib/python3.10/site-packages (from jax) (4.9.0)
-Requirement already satisfied: numpy>=1.19 in /home/ubuntu/.local/lib/python3.10/site-packages (from jax) (1.26.4)
-Requirement already satisfied: scipy>=1.2.1 in /home/ubuntu/.local/lib/python3.10/site-packages (from jax) (1.12.0)
-Requirement already satisfied: opt-einsum in /home/ubuntu/.local/lib/python3.10/site-packages (from jax) (3.3.0)
-Requirement already satisfied: absl-py in /home/ubuntu/.local/lib/python3.10/site-packages (from jax) (2.1.0)

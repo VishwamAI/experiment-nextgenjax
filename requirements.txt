@@ -1,56 +1,53 @@
 # Google DeepMind libraries and other dependencies integrated into the NextGenJax model
 
-calm
-chex
+calm==0.1.4
+chex==0.1.7  # Specify a compatible version for Python 3.8
 # csuite  # Commented out as it's not available in PyPI
-disentangled-rnns
-distrax
-dm-control
-dm-haiku  # Note: As of July 2023, Google DeepMind recommends using Flax instead of Haiku for new projects
-dm-pix
-dm-reverb
-dmlab2d
-dks
-einshape
-enn
-envlogger
-ferminet
-gym
-iris
-jax
-jax-privacy
-jaxlib
-jmp
-jraph
-kfac-jax
-librosa
-matplotlib
-mathematics-dataset
-mctx
-mujoco
-numpy>=1.24
-opencv-python
-optax
-penzai
-pgmax
-pillow
-pytest
-pysc2
-rlax
-routellm
-scikit-learn
-scipy>=1.10
+# disentangled-rnns  # Commented out as it's not available in PyPI
+distrax==0.1.5
+dm-control==1.0.21
+dm-haiku==0.0.9  # Note: As of July 2023, Google DeepMind recommends using Flax instead of Haiku for new projects
+dm-pix==0.4.3
+dm-reverb==0.14.0
+dmlab2d==1.0.0
+dks==0.1.2
+einshape==1.0
+enn==0.14
+envlogger==1.2
+gym==0.26.2
+iris==1.0.7
+jax==0.4.20
+jax-privacy==0.3.0
+jaxlib==0.4.20
+jmp==0.0.4
+jraph==0.0.6.dev0
+librosa==0.10.2
+matplotlib==3.8.2
+mathematics-dataset==1.0.1
+mctx==0.0.5
+mujoco==3.2.0
+numpy==1.24.0
+opencv-python==4.10.0.84
+optax==0.2.2
+penzai==0.2.0
+pgmax==0.6.1
+pillow==10.2.0
+pytest==8.3.2
+pysc2==4.0.0
+rlax==0.1.6
+routellm==0.2.0
+scikit-learn==1.3.2
+scipy==1.10.0
 sonnet
-synjax
-tensorflow
-tensorflow-datasets
-tensorflow-hub
-tensorflow-text
-tf2jax
-torch
-transformers
-treescope
-xmanager
+tensorflow==2.15.0
+tensorflow-datasets==4.9.4
+tensorflow-hub==0.15.0
+tensorflow-text==2.15.0
+tf2jax==0.3.5
+torch==2.1.2
+transformers==4.36.2
+treescope==0.0.1
+xmanager==0.4.0
 
 # The following are custom modules and do not exist as installable packages on PyPI.
 # pmap - Parallel mapping module
@@ -58,11 +55,10 @@ xmanager
 # jit - Just-In-Time compilation module
 # grad - Gradient computation module
 # random - Random operations module
-# benchmarks - Benchmarking module
-# building_mechanisms - Module for building mechanisms
-# reinforcement_learning - Reinforcement learning module
-# learning_networking_module - Learning and networking module
-# 3d_preprocessing_utils - 3D preprocessing utilities
+# numpy - NumPy operations module
+# lax - Low-level array operations module
+# nn - Neural network module
+# optimizers - Optimization algorithms module
 # media_conversion - Media conversion module
 # aliases - Module for managing aliases of components
 # advanced_reasoning_module - Advanced reasoning module
