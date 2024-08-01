@@ -1,7 +1,5 @@
 import sys
-print("Starting test_nextgenjax_functionality.py")
-print("Python path:", sys.path)
-
+import jax
 from jax import grad, jit, pmap
 import scipy as sp
 import matplotlib.pyplot as plt
@@ -11,6 +9,9 @@ import jax.random as jrandom
 import optax
 import chex
 import haiku as hk
+
+print("Starting test_nextgenjax_functionality.py")
+print("Python path:", sys.path)
 
 # Removed import statement for 'synjax' as it is not a known library and caused a ModuleNotFoundError.
 
@@ -115,17 +116,35 @@ params = transformed_forward.init(key, jnp.zeros((1, 10)))
 print("Shape of input_tensor_3d:", input_tensor_3d.shape)
 print("Total elements in input_tensor_3d:", jnp.prod(jnp.array(input_tensor_3d.shape)))
 
-# Calculate the correct first dimension for reshaping
+# Calculate the correct dimensions for reshaping
 total_elements = jnp.prod(jnp.array(input_tensor_3d.shape))
 new_first_dim = total_elements // placeholder_model.num_classes
+remainder = total_elements % placeholder_model.num_classes
+
+# Pad the input if necessary to make it divisible by num_classes
+if remainder != 0:
+    pad_size = placeholder_model.num_classes - remainder
+    input_tensor_3d = jnp.pad(input_tensor_3d.ravel(), (0, pad_size))
+    total_elements += pad_size
+    new_first_dim = total_elements // placeholder_model.num_classes
+
 intended_shape = (new_first_dim, placeholder_model.num_classes)
-
-# Ensure the total number of elements remains the same
-if total_elements % placeholder_model.num_classes != 0:
-    raise ValueError("The total number of elements is not divisible by placeholder_model.num_classes, cannot reshape properly.")
-
 print("Intended reshape:", intended_shape)
-print("Total elements after reshape:", jnp.prod(jnp.array(intended_shape)))
+print("Total elements after reshape:", total_elements)
 
-output = transformed_forward.apply(params, input_tensor_3d.reshape(intended_shape))
-print('Haiku MLP output shape:', output.shape)
+reshaped_input = input_tensor_3d.reshape(intended_shape)
+print("Reshaped input shape:", reshaped_input.shape)
+
+# Apply the transformed forward pass
+key = jax.random.PRNGKey(42)  # 42 is an arbitrary seed value
+print("Debug: RNG key shape:", key.shape)
+print("Debug: RNG key dtype:", key.dtype)
+
+try:
+    output = transformed_forward.apply(params, key, reshaped_input)
+    print('Haiku MLP output shape:', output.shape)
+except ValueError as e:
+    print(f"ValueError occurred: {e}")
+    print("Debug: params shape:", jax.tree_map(lambda x: x.shape, params))
+    print("Debug: reshaped_input shape:", reshaped_input.shape)
+    raise

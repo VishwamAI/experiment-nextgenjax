@@ -21,9 +21,11 @@ class TestAIPhoenixOptimizerKit(unittest.TestCase):
         optimizer = AIPhoenix_OptimizerKit.sgd(learning_rate=0.1)
         params = jnp.array([1.0, 2.0, 3.0])
         grads = jnp.array([0.1, 0.1, 0.1])
-        init_state = optimizer[0](params)
-        updates, new_state = optimizer[1](grads, init_state)
-        self.assertTrue(jnp.allclose(params - 0.1 * grads, updates))
+        print("Before optimization - params:", params, "grads:", grads)
+        updated_params = optimizer(params, grads)
+        print("After optimization - updated_params:", updated_params)
+        expected_params = params - 0.1 * grads
+        self.assertTrue(jnp.allclose(expected_params, updated_params))
 
     def test_adam_optimizer(self):
         # Test the Adam optimizer
@@ -57,8 +59,15 @@ class TestAIPhoenixOptimizerKit(unittest.TestCase):
     def test_custom_gradient_transformation(self):
         # Test the custom gradient transformation
         grad_fn = lambda x: jnp.array([x, x])
+        print("Before transformation - grad_fn type:", type(grad_fn))
+        print("Before transformation - grad_fn value:", grad_fn)
         transformed_grad_fn = AIPhoenix_OptimizerKit.custom_gradient_transformation(grad_fn)
-        grads = transformed_grad_fn(jnp.array([1.0, 2.0, 3.0]))
+        print("After transformation - transformed_grad_fn type:", type(transformed_grad_fn))
+        print("After transformation - transformed_grad_fn value:", transformed_grad_fn)
+        init_state = transformed_grad_fn[0](None)
+        grads, _ = transformed_grad_fn[1](jnp.array([1.0, 2.0, 3.0]), init_state)
+        print("After applying transformed_grad_fn - grads type:", type(grads))
+        print("After applying transformed_grad_fn - grads value:", grads)
         self.assertIsNotNone(grads)
 
 if __name__ == '__main__':

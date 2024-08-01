@@ -474,6 +474,8 @@ class NextGenJaxModel:
                 super().__init__()
                 self.input_layers = [layer for layer in layers if isinstance(layer, Input)]
                 self.processing_layers = [layer for layer in layers if not isinstance(layer, Input)]
+                # Initialize optimizer using optax
+                self.optimizer = optax.adam(learning_rate=0.001)  # Default to Adam optimizer
 
             def __call__(self, inputs):
                 print("Inputs type:", type(inputs))
@@ -785,19 +787,19 @@ class NextGenJaxModel:
                 return pmap(apply_model)(model.params, batch)
 
             def aggregate_gradients(self, grads):
-                return tree_map(lambda *args: self.nnp.mean(self.nnp.stack(args), axis=0), *grads)
+                return tree_map(lambda *args: jnp.mean(jnp.stack(args), axis=0), *grads)
 
             def train_step(self, model, optimizer, batch):
                 def loss_fn(params, x, y):
                     logits = model.apply(params, x)
-                    return self.nnp.mean((logits - y) ** 2)
+                    return jnp.mean((logits - y) ** 2)
 
-                grad_fn = lambda params, x, y: (loss_fn(params, x, y), self.nnp.grad(loss_fn)(params, x, y))
+                grad_fn = jax.value_and_grad(loss_fn)
 
                 def per_device_train_step(params, opt_state, x, y):
                     loss, grads = grad_fn(params, x, y)
                     updates, new_opt_state = optimizer.update(grads, opt_state)
-                    new_params = tree_map(lambda p, u: p + u, params, updates)
+                    new_params = optax.apply_updates(params, updates)
                     return new_params, new_opt_state, loss
 
                 return pmap(per_device_train_step)(model.params, optimizer.state, *batch)
@@ -812,8 +814,8 @@ class NextGenJaxModel:
 
     def process_input(self, input_3d, input_2d, math_problem=None):
         try:
-            input_3d_tensor = self.nnp.array(input_3d)
-            input_2d_tensor = self.nnp.array(input_2d)
+            input_3d_tensor = jnp.array(input_3d)
+            input_2d_tensor = jnp.array(input_2d)
             jax_output = self.model([input_3d_tensor, input_2d_tensor])
             pytorch_output = self.process_input_pytorch(input_3d)
 
@@ -919,11 +921,12 @@ class AIPhoenixQuantum:
 
 # Update the NextGenJaxModel to include an instance of AIPhoenixQuantum
 class NextGenJaxModel:
-    def __init__(self, input_shape_3d=(64, 64, 64, 1), num_classes=10):
+    def __init__(self, input_shape_3d=(64, 64, 64, 1), num_classes=10, learning_rate=1e-3):
         # Initialize model parameters
         self.input_shape_3d = input_shape_3d
         self.input_shape_2d = (64, 64, 3)  # Example 2D input shape
         self.num_classes = num_classes
+        self.learning_rate = learning_rate
 
         # Initialize the plugins
         self._initialize_plugins()
@@ -938,3 +941,19 @@ class NextGenJaxModel:
         self.speech_transcriber = self.AIPhoenix_SpeechTranscriber()
         self.distributed_trainer = self.AIPhoenix_DistributedTrainer()
         self.aiphoenix_quantum = AIPhoenixQuantum()  # Add AIPhoenixQuantum instance
+
+        # Initialize optax optimizer
+        self.optimizer = optax.adam(self.learning_rate)
+        self.params = self.model.init(jax.random.PRNGKey(0), jnp.ones((1,) + self.input_shape_3d))
+        self.opt_state = self.optimizer.init(self.params)
+
+    def update(self, batch):
+        def loss_fn(params, x, y):
+            logits = self.model.apply(params, x)
+            return jnp.mean((logits - y) ** 2)
+
+        grad_fn = jax.value_and_grad(loss_fn)
+        loss, grads = grad_fn(self.params, batch['x'], batch['y'])
+        updates, self.opt_state = self.optimizer.update(grads, self.opt_state)
+        self.params = optax.apply_updates(self.params, updates)
+        return loss
