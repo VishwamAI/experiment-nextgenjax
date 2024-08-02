@@ -24,7 +24,7 @@ matplotlib
 mathematics-dataset
 mctx
 mujoco
-numpy>=1.24.1,<1.25  # Adjusted to resolve dependency conflicts
+numpy<1.23  # Adjusted to be compatible with distrax
 opencv-python
 optax==0.2.2
 pgmax
@@ -34,7 +34,7 @@ pysc2
 rlax
 routellm
 scikit-learn
-scipy>=1.8.0,<1.11.0  # Adjusted to be compatible with numpy>=1.23.5
+scipy>=1.8.0,<1.11.0  # Adjusted to be compatible with numpy<1.23
 dm-sonnet==2.0.2  # Updated to correct package name and version
 tensorflow==2.13.0  # Updated to a compatible version
 tensorflow-datasets
