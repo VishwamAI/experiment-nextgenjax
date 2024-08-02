@@ -7,45 +7,45 @@ distrax==0.1.3  # Compatible version for Python 3.8
 dm-control==1.0.21
 dm-haiku==0.0.9  # Note: As of July 2023, Google DeepMind recommends using Flax instead of Haiku for new projects
 dm-pix==0.4.3
-dm-reverb==0.8.0  # Updated to match installed version
+dm-reverb==0.14.0
 dmlab2d==1.0.0
-dks==0.1.2
-einshape==1.0
-enn==0.14
-envlogger==1.2
+dks
+einshape
+enn
+envlogger
 # ferminet  # Commented out as it's not available in PyPI
-gym==0.26.2
-iris==1.0.7
-jmp==0.0.4
-jraph==0.0.6.dev0
-langchain==0.0.352
-librosa==0.10.2
-matplotlib==3.5.3
-mathematics-dataset==1.0.1
+gym
+iris
+jmp
+jraph
+langchain
+librosa
+matplotlib
+mathematics-dataset
 mctx
-mujoco==3.2.0
+mujoco
 numpy==1.24.0
-opencv-python==4.10.0.84
+opencv-python
 optax==0.2.2
-penzai==0.2.0
-pgmax==0.6.1
-pillow==10.2.0
-pytest==8.3.2
-pysc2==4.0.0
-rlax==0.1.6
-routellm==0.2.0
-scikit-learn==1.3.2
-scipy
+penzai
+pgmax
+pillow
+pytest
+pysc2
+rlax
+routellm
+scikit-learn
+scipy==1.10.1
 sonnet==2.0.0  # Compatible version for Python 3.8 and TensorFlow 2.17.0
 tensorflow==2.17.0  # Updated to match installed version
-tensorflow-datasets==4.9.4
-tensorflow-hub==0.15.0
-tensorflow-text==2.15.0
-tf2jax==0.3.5
-torch==2.1.2
-transformers==4.36.2
-treescope==0.1.0
-xmanager==0.4.0
+tensorflow-datasets
+tensorflow-hub
+tensorflow-text
+tf2jax
+torch
+transformers
+treescope
+xmanager
 networkx>=2.8
 
 # The following are custom modules and do not exist as installable packages on PyPI.
