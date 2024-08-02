@@ -45,7 +45,6 @@ tensorflow-text
 tf2jax
 torch
 transformers
-treescope
 xmanager
 networkx>=2.8
 
