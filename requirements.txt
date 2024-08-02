@@ -2,14 +2,14 @@
 
 jax>=0.4.16
 jaxlib>=0.4.16
-chex>=0.1.86  # Updated to be compatible with optax and distrax
+chex>=0.1.86
 # csuite  # Commented out as it's not available in PyPI
 # disentangled-rnns  # Commented out as it's not available in PyPI
-distrax==0.1.3  # Compatible version for Python 3.8
-dm-control==1.0.21
-dm-haiku==0.0.9  # Note: As of July 2023, Google DeepMind recommends using Flax instead of Haiku for new projects
-dm-pix==0.4.3
-dmlab2d==1.0.0
+distrax>=0.1.3
+dm-control>=1.0.21
+dm-haiku>=0.0.9  # Note: As of July 2023, Google DeepMind recommends using Flax instead of Haiku for new projects
+dm-pix>=0.4.3
+dmlab2d>=1.0.0
 dks
 einshape
 enn
@@ -24,9 +24,9 @@ matplotlib
 mathematics-dataset
 mctx
 mujoco
-numpy>=1.18.0,<1.23  # Adjusted to be compatible with distrax 0.1.3
+numpy>=1.24.1
 opencv-python
-optax==0.2.2
+optax>=0.2.2
 pgmax
 pillow
 pytest
@@ -34,9 +34,9 @@ pysc2
 rlax
 routellm
 scikit-learn
-scipy>=1.8.0,<1.11.0  # Adjusted to be compatible with numpy<1.23
-dm-sonnet==2.0.2  # Updated to correct package name and version
-tensorflow==2.13.0  # Updated to a compatible version
+scipy>=1.8.0
+dm-sonnet>=2.0.2
+tensorflow>=2.13.0
 tensorflow-datasets
 tensorflow-hub
 tensorflow-text
