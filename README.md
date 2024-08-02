@@ -85,3 +85,5 @@ Contributions to the NextGenJax model are welcome. Please read the contributing 
 
 ## License
 The NextGenJax model is open-source and available under the MIT license.
+
+<!-- Trigger GitHub Actions workflow -->

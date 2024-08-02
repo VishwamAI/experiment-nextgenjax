@@ -1,15 +1,15 @@
-# NextGenJax Model Documentation
+# AdvancedJax Model Documentation
 
 ## Custom 'jit' Implementation
 
-In the NextGenJax model, we have implemented a custom 'jit' function that serves as a decorator for just-in-time compilation of functions. This custom implementation is designed to replace the direct import from JAX and align with the custom framework being built for NextGenJax.
+In the AdvancedJax model, we have implemented a custom 'jit' function that serves as a decorator for just-in-time compilation of functions. This custom implementation is designed to replace the direct import from JAX and align with the custom framework being built for AdvancedJax.
 
 ### Usage
 
-To use the custom 'jit' decorator, simply import it from the `nextgenjax_model` module and apply it to your function definitions:
+To use the custom 'jit' decorator, simply import it from the `jax_model` module and apply it to your function definitions:
 
 ```python
-from nextgenjax_model import custom_jit as jit
+from src.jax_model import custom_jit as jit
 
 @jit
 def your_function(args):
@@ -21,4 +21,4 @@ The custom 'jit' decorator will handle the tracing and compilation of the functi
 
 ### Implementation Details
 
-The custom 'jit' function currently includes placeholders for tracing and compilation logic. It is designed to be extended in the future with more advanced functionality as the NextGenJax model evolves.
+The custom 'jit' function currently includes placeholders for tracing and compilation logic. It is designed to be extended in the future with more advanced functionality as the AdvancedJax model evolves.
