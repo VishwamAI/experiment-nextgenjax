@@ -25,7 +25,7 @@ matplotlib
 mathematics-dataset
 mctx
 mujoco
-numpy>=1.21,<1.23  # Adjusted to be compatible with jax, jaxlib, and distrax
+numpy>=1.23.5,<2.0.0  # Updated to satisfy tensorflow and other dependencies
 opencv-python
 optax==0.2.2
 pgmax
