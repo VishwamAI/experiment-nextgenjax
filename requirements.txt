@@ -22,7 +22,7 @@ langchain==0.0.352
 librosa==0.10.2
 matplotlib==3.5.3
 mathematics-dataset==1.0.1
-mctx==0.0.5
+mctx
 mujoco==3.2.0
 numpy==1.24.0
 opencv-python==4.10.0.84
