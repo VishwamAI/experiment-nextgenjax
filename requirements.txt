@@ -1,5 +1,7 @@
 # Google DeepMind libraries and other dependencies integrated into the NextGenJax model
 
+jax>=0.4.20; sys_platform != "win32"
+jaxlib>=0.4.20; sys_platform != "win32"
 chex==0.1.7
 # csuite  # Commented out as it's not available in PyPI
 # disentangled-rnns  # Commented out as it's not available in PyPI
@@ -61,7 +63,3 @@ networkx>=2.8
 # media_conversion - Media conversion module
 # aliases - Module for managing aliases of components
 # advanced_reasoning_module - Advanced reasoning module
-
-# Platform-specific dependencies
-jax==0.4.20; sys_platform != "win32"
-jaxlib==0.4.20; sys_platform != "win32"
