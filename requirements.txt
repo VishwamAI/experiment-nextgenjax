@@ -13,7 +13,6 @@ dmlab2d==1.0.0
 dks
 einshape
 enn
-envlogger
 # ferminet  # Commented out as it's not available in PyPI
 gym
 iris
