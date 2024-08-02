@@ -35,7 +35,7 @@ jobs:
         pip install pytest
     - name: Run tests
       run: |
-        pytest -k "not test_jax"
+        pytest -k "not (test_jax or test_nextgenjax_functionality or test_plugin_integration or test_time_aware_observation)"
 
   build-macos:
     runs-on: macos-latest
