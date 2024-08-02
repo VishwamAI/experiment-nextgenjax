@@ -38,15 +38,24 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.9'
+    - name: Create and activate virtual environment
+      run: |
+        python -m venv venv
+        .\venv\Scripts\Activate.ps1
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest
-        pip uninstall -y jax jaxlib
+    - name: Install JAX for Windows
+      run: |
+        pip install --upgrade "jax[cpu]"
     - name: Run tests
       run: |
-        pytest -k "not (test_jax or test_nextgenjax_functionality or test_plugin_integration or test_time_aware_observation or jax)"
+        pytest
+    - name: Deactivate virtual environment
+      run: deactivate
+      if: always()
 
   build-macos:
     runs-on: macos-latest
