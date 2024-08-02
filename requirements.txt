@@ -1,7 +1,7 @@
 # Google DeepMind libraries and other dependencies integrated into the NextGenJax model
 
-jax>=0.4.16; sys_platform != "win32"
-jaxlib>=0.4.16; sys_platform != "win32"
+jax>=0.4.16
+jaxlib>=0.4.16
 chex>=0.1.86  # Updated to be compatible with optax and distrax
 # csuite  # Commented out as it's not available in PyPI
 # disentangled-rnns  # Commented out as it's not available in PyPI
@@ -24,7 +24,7 @@ matplotlib
 mathematics-dataset
 mctx
 mujoco
-numpy>=1.18.0,<1.23  # Adjusted to be compatible with distrax
+numpy>=1.24.1  # Updated to resolve conflicts with other packages
 opencv-python
 optax==0.2.2
 pgmax
