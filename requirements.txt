@@ -24,7 +24,7 @@ matplotlib
 mathematics-dataset
 mctx
 mujoco
-numpy<1.23  # Adjusted to be compatible with distrax and other dependencies
+numpy>=1.24.1,<1.25  # Adjusted to resolve dependency conflicts
 opencv-python
 optax==0.2.2
 pgmax
