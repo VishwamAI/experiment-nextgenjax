@@ -29,7 +29,6 @@ mujoco
 numpy>=1.23.5,<2.0.0
 opencv-python
 optax==0.2.2
-penzai
 pgmax
 pillow
 pytest
