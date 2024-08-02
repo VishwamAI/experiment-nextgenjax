@@ -36,7 +36,7 @@ routellm
 scikit-learn
 scipy>=1.8.0,<1.11.0  # Adjusted to be compatible with numpy>=1.23.5
 dm-sonnet==2.0.2  # Updated to correct package name and version
-tensorflow==2.17.0  # Updated to match installed version
+tensorflow==2.10.0  # Updated to be compatible with numpy<1.23
 tensorflow-datasets
 tensorflow-hub
 tensorflow-text
