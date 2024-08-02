@@ -1,7 +1,7 @@
 # Google DeepMind libraries and other dependencies integrated into the NextGenJax model
 
-jax>=0.4.20; sys_platform != "win32"
-jaxlib>=0.4.20; sys_platform != "win32"
+jax==0.4.13; sys_platform != "win32"
+jaxlib==0.4.13; sys_platform != "win32"
 chex==0.1.7
 # csuite  # Commented out as it's not available in PyPI
 # disentangled-rnns  # Commented out as it's not available in PyPI
