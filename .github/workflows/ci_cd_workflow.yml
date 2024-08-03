@@ -30,9 +30,6 @@ jobs:
     - name: Run tests
       run: |
         pytest
-    - name: Deactivate virtual environment
-      run: deactivate
-      if: always()
 
   build-windows:
     runs-on: windows-latest
@@ -61,9 +58,6 @@ jobs:
     - name: Run tests
       run: |
         pytest
-    - name: Deactivate virtual environment
-      run: deactivate
-      if: always()
 
   build-macos:
     runs-on: macos-latest
@@ -92,6 +86,3 @@ jobs:
     - name: Run tests
       run: |
         pytest
-    - name: Deactivate virtual environment
-      run: deactivate
-      if: always()
