@@ -23,6 +23,8 @@ jobs:
     - name: Install JAX
       run: |
         pip install --upgrade "jax[cpu]"
+    - name: List installed packages
+      run: pip list
     - name: Run tests
       run: |
         pytest
@@ -50,6 +52,8 @@ jobs:
     - name: Install JAX for Windows
       run: |
         pip install --upgrade "jax[cpu]"
+    - name: List installed packages
+      run: pip list
     - name: Run tests
       run: |
         pytest
@@ -77,6 +81,8 @@ jobs:
     - name: Install JAX
       run: |
         pip install --upgrade "jax[cpu]"
+    - name: List installed packages
+      run: pip list
     - name: Run tests
       run: |
         pytest
