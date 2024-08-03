@@ -1,5 +1,5 @@
 import unittest
-from nextgenjax.jit.jit import jit
+from src.nextgenjax.jit.jit import jit
 
 class TestJitFunctionality(unittest.TestCase):
 

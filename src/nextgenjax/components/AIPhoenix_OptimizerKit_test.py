@@ -1,11 +1,12 @@
 import unittest
-from src.nextgenjax.components.AIPhoenix_OptimizerKit import AIPhoenix_OptimizerKit
-from src.nextgenjax.grad.grad import grad
-from src.nextgenjax.jit.jit import jit
-from src.nextgenjax import tree_map
+from nextgenjax.components.AIPhoenix_OptimizerKit import AIPhoenix_OptimizerKit
+from nextgenjax.grad.grad import grad
+from nextgenjax.jit.jit import jit
+from nextgenjax import tree_map
 import random
 import jax.numpy as jnp
 import jax
+import matplotlib.pyplot as plt
 
 class TestAIPhoenixOptimizerKit(unittest.TestCase):
 
