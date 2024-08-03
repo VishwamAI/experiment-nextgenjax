@@ -25,6 +25,8 @@ jobs:
         pip install --upgrade "jax[cpu]"
     - name: Install optax
       run: pip install optax
+    - name: Install dm-haiku
+      run: pip install dm-haiku
     - name: Install nextgenjax
       run: pip install -e .
     - name: List installed packages
@@ -58,6 +60,8 @@ jobs:
         pip install --upgrade "jax[cpu]"
     - name: Install optax
       run: pip install optax
+    - name: Install dm-haiku
+      run: pip install dm-haiku
     - name: Install nextgenjax
       run: pip install -e .
     - name: List installed packages
@@ -91,6 +95,8 @@ jobs:
         pip install --upgrade "jax[cpu]"
     - name: Install optax
       run: pip install optax
+    - name: Install dm-haiku
+      run: pip install dm-haiku
     - name: Install nextgenjax
       run: pip install -e .
     - name: List installed packages
