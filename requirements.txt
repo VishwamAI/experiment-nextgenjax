@@ -13,6 +13,7 @@ dmlab2d>=1.0.0
 dks
 einshape
 enn
+fairscale>=0.4.6
 # ferminet  # Commented out as it's not available in PyPI
 gym
 iris
