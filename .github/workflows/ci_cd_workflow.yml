@@ -23,6 +23,8 @@ jobs:
     - name: Install JAX
       run: |
         pip install --upgrade "jax[cpu]"
+    - name: Install optax
+      run: pip install optax
     - name: List installed packages
       run: pip list
     - name: Run tests
@@ -52,6 +54,8 @@ jobs:
     - name: Install JAX for Windows
       run: |
         pip install --upgrade "jax[cpu]"
+    - name: Install optax
+      run: pip install optax
     - name: List installed packages
       run: pip list
     - name: Run tests
@@ -81,6 +85,8 @@ jobs:
     - name: Install JAX
       run: |
         pip install --upgrade "jax[cpu]"
+    - name: Install optax
+      run: pip install optax
     - name: List installed packages
       run: pip list
     - name: Run tests
