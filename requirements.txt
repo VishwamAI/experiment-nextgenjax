@@ -23,8 +23,8 @@ mctx
 mujoco
 numpy
 opencv-python
-optax
-penzai
+optax==0.1.8  # Compatible with Python < 3.9
+penzai  # This package is not available on PyPI
 pgmax
 pillow
 pytest
@@ -33,8 +33,8 @@ rlax
 routellm
 scikit-learn
 scipy
-sonnet
-tensorflow
+sonnet==2.0.0  # Compatible version for Python 3.8 and TensorFlow 2.17.0
+tensorflow==2.17.0  # Updated to match installed version
 tensorflow-datasets
 tensorflow-hub
 tensorflow-text
@@ -43,7 +43,7 @@ torch
 transformers
 treescope
 xmanager
-networkx
+networkx>=2.8
 
 # The following are custom modules and do not exist as installable packages on PyPI.
 # pmap - Parallel mapping module
