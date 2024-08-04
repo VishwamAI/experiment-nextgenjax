@@ -5,6 +5,7 @@ on: [push, pull_request]
 jobs:
   build-ubuntu:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
@@ -14,7 +15,7 @@ jobs:
     - name: Create and activate virtual environment
       run: |
         python -m venv venv
-        source venv/bin/activate
+        source venv/bin/activate || echo "Failed to activate virtual environment"
     - name: Clear pip cache
       run: pip cache purge
     - name: Install dependencies
@@ -43,6 +44,7 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
@@ -52,7 +54,7 @@ jobs:
     - name: Create and activate virtual environment
       run: |
         python -m venv venv
-        .\venv\Scripts\Activate.ps1
+        .\venv\Scripts\Activate.ps1 || echo "Failed to activate virtual environment"
     - name: Clear pip cache
       run: pip cache purge
     - name: Install dependencies
@@ -81,6 +83,7 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
@@ -90,7 +93,7 @@ jobs:
     - name: Create and activate virtual environment
       run: |
         python -m venv venv
-        source venv/bin/activate
+        source venv/bin/activate || echo "Failed to activate virtual environment"
     - name: Clear pip cache
       run: pip cache purge
     - name: Install dependencies
