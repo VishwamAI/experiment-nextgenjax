@@ -32,8 +32,8 @@ rlax
 routellm
 scikit-learn
 scipy
-sonnet
-tensorflow
+sonnet==0.1.6  # Last compatible version found for Python < 3.9
+tensorflow==2.17.0  # Compatible version for Python < 3.9
 tensorflow-datasets
 tensorflow-hub
 tensorflow-text
