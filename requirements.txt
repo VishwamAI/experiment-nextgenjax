@@ -33,7 +33,7 @@ routellm
 scikit-learn
 scipy
 dm-sonnet  # Removed version constraint to let pip resolve to the latest compatible version
-tensorflow==2.10.0  # Adjusting tensorflow version to match numpy constraints
+tensorflow==2.12.1  # Adjusting tensorflow version to match numpy constraints
 tensorflow-datasets
 tensorflow-hub
 tensorflow-text
