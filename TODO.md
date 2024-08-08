@@ -1,6 +1,6 @@
 # TODO List for NextGenJax Model Improvements
 
-- [ ] Optimize nested loops in Conv3D and dot product calculations in `jax_model.py`.
+- [x] Optimize nested loops in Conv3D and dot product calculations in `jax_model.py`.
 - [ ] Implement comprehensive error handling in methods within `jax_model.py`.
 - [ ] Ensure consistent data types and robust type checks in `jax_model.py`.
 - [ ] Add inline comments and docstrings to improve documentation in `jax_model.py`.

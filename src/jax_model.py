@@ -199,9 +199,10 @@ class AdvancedJaxNumpy:
         print(f"Conv3D output shape: {self.shape(output)}")
         return output
 
+    @jit
     def dot(self, a, b):
         """
-        Compute the dot product of two arrays.
+        Compute the dot product of two arrays using JAX's vectorized operations.
 
         Args:
             a (Array): First input array
@@ -239,14 +240,11 @@ class AdvancedJaxNumpy:
         if self.shape(a)[1] != self.shape(b)[0]:
             raise ValueError(f"Incompatible shapes for dot product: {self.shape(a)} and {self.shape(b)}")
 
-        # Implement dot product calculation
-        result = self.zeros((self.shape(a)[0], self.shape(b)[1]))
-        for i in range(self.shape(a)[0]):
-            for j in range(self.shape(b)[1]):
-                result[i, j] = sum(a[i, k] * b[k, j] for k in range(self.shape(a)[1]))
+        # Use JAX's vectorized dot product
+        result = jnp.dot(a.data, b.data)
 
         print(f"Dot product result shape: {self.shape(result)}")
-        return result
+        return self.Array(result)
 
     def multiply(self, a, b):
         print(f"Debug: multiply input types: a={type(a)}, b={type(b)}")
@@ -462,28 +460,26 @@ class NextGenJaxModel:
                 self.strides = strides
                 self.padding = padding
                 self.activation = activation
-                # Initialize W with 5 dimensions: (depth, height, width, in_channels, out_channels)
-                # Note: in_channels will be set when __call__ is first invoked
                 self.W = None
                 self.b = jnp.zeros((filters,))
+
+            @jax.jit
+            def _conv3d(self, x, W, b):
+                output = jax.lax.conv_general_dilated(
+                    x, W,
+                    window_strides=self.strides,
+                    padding=self.padding,
+                    dimension_numbers=('NDHWC', 'DHWIO', 'NDHWC')
+                ) + b
+                return self.activation(output) if self.activation else output
 
             def __call__(self, x):
                 if self.W is None:
                     in_channels = x.shape[-1]
-                    self.W = jax.random.normal(jax.random.PRNGKey(0), (self.kernel_size[0], self.kernel_size[1], self.kernel_size[2], in_channels, self.filters))
+                    key = jax.random.PRNGKey(0)
+                    self.W = jax.random.normal(key, (self.kernel_size[0], self.kernel_size[1], self.kernel_size[2], in_channels, self.filters))
 
-                print(f"Conv3D input shape: {x.shape}")
-                print(f"Conv3D filter shape: {self.W.shape}")
-                print(f"Conv3D strides: {self.strides}")
-                print(f"Conv3D padding: {self.padding}")
-                output = jax.lax.conv_general_dilated(
-                    x, self.W,
-                    window_strides=self.strides,
-                    padding=self.padding,
-                    dimension_numbers=('NDHWC', 'DHWIO', 'NDHWC')
-                ) + self.b
-                print(f"Conv3D output shape: {output.shape}")
-                return self.activation(output) if self.activation else output
+                return jax.vmap(self._conv3d, in_axes=(0, None, None))(x, self.W, self.b)
 
         class MaxPooling3D:
             def __init__(self, pool_size=(2, 2, 2), strides=None, padding='valid'):
