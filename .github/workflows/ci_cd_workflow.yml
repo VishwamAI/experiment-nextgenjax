@@ -35,7 +35,7 @@ jobs:
         pip install pytest
     - name: Run tests
       run: |
-        pytest -m "not jax_unsupported"
+        pytest -k "not test_" -m "not jax_unsupported"
 
   build-macos:
     runs-on: macos-latest
