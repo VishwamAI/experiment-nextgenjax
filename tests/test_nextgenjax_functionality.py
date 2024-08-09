@@ -1,11 +1,13 @@
 import sys
 import pytest
+import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 from typing import Dict, Any, Sequence
 
 # Conditional imports for JAX and related libraries
-# These are only imported on non-Windows platforms
+# These are only imported on non-Windows platforms to ensure compatibility
+# and prevent import errors on systems where JAX is not supported
 if sys.platform != "win32":
     import jax
     import jax.numpy as jnp
@@ -18,13 +20,18 @@ if sys.platform != "win32":
     Shape = Sequence[int | Any]
 else:
     # Set all JAX-related imports to None on Windows
+    # This allows the code to run without JAX-dependent features
     jax = jnp = jrandom = grad = jit = jaxlib = optax = chex = hk = None
     Shape = None
 
 print("Starting test_nextgenjax_functionality.py")
 print("Python path:", sys.path)
 
+print("Starting test_nextgenjax_functionality.py")
+print("Python path:", sys.path)
+
 # Mark all tests in this file as jax_unsupported
+# This ensures that these tests are skipped on platforms where JAX is not supported (e.g., Windows)
 pytestmark = pytest.mark.jax_unsupported
 
 print("Importing necessary components for testing...")
@@ -97,18 +104,26 @@ def test_grad_module():
 
     print('Gradients:', gradients)
 
-# Verify scipy integration by performing a simple operation
+# Verify scipy integration by performing a simple FFT operation
 def test_scipy_integration():
-    scipy_result = sp.fft.fft([0, 1, 0, 1])
+    input_signal = [0, 1, 0, 1]
+    scipy_result = sp.fft.fft(input_signal)
     print('SciPy FFT result:', scipy_result)
     assert len(scipy_result) == 4, "SciPy FFT result should have length 4"
+    assert np.allclose(scipy_result, [2, 0-2j, 2, 0+2j]), "Unexpected FFT result"
+    assert np.allclose(np.abs(scipy_result), [2, 2, 2, 2]), "Magnitude of FFT result should be [2, 2, 2, 2]"
 
 # Verify matplotlib integration by plotting a simple graph
 def test_matplotlib_integration():
-    plt.figure()
-    plt.plot([0, 1, 0, 1])
-    plt.title('Matplotlib Integration Test')
-    plt.close()  # Close the figure to avoid displaying it during tests
+    fig, ax = plt.subplots()
+    data = [0, 1, 0, 1]
+    ax.plot(data)
+    ax.set_title('Matplotlib Integration Test')
+    assert len(ax.lines) == 1, "Plot should have one line"
+    assert ax.get_title() == 'Matplotlib Integration Test', "Title should be set correctly"
+    assert ax.get_xlim() == (0, 3), "X-axis limits should be (0, 3)"
+    assert ax.get_ylim() == (0, 1), "Y-axis limits should be (0, 1)"
+    plt.close(fig)  # Close the figure to avoid displaying it during tests
 
 @pytest.mark.skipif(sys.platform == "win32", reason="jax not supported on Windows")
 def test_xla_integration():
