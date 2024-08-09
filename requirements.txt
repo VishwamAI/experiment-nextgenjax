@@ -35,7 +35,7 @@ dm-sonnet==2.0.1  # Specifying a version compatible with Python 3.8
 tensorflow==2.13.1  # Updated to resolve installation issue
 tensorflow-datasets==4.9.2
 tensorflow-hub==0.12.0  # Adjusted to be compatible with tensorflow 2.13.1
-tensorflow-text==2.12.1  # Updated for better compatibility with Python 3.8 and other dependencies
+tensorflow-text==2.17.0  # Updated for compatibility with GitHub Actions macOS runner
 tf2jax==0.3.1
 torch==1.13.1
 transformers==4.29.2
