@@ -4,6 +4,8 @@ import scipy as sp
 import matplotlib.pyplot as plt
 from typing import Dict, Any, Sequence
 
+# Conditional imports for JAX and related libraries
+# These are only imported on non-Windows platforms
 if sys.platform != "win32":
     import jax
     import jax.numpy as jnp
@@ -15,6 +17,7 @@ if sys.platform != "win32":
     import haiku as hk
     Shape = Sequence[int | Any]
 else:
+    # Set all JAX-related imports to None on Windows
     jax = jnp = jrandom = grad = jit = jaxlib = optax = chex = hk = None
     Shape = None
 
