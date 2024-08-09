@@ -42,6 +42,7 @@ torch==1.13.1
 transformers==4.29.2
 networkx>=2.8,<3.0
 SQLAlchemy==1.4.46
+whisper==1.1.10  # Added whisper package with the latest stable version
 
 # The following are custom modules and do not exist as installable packages on PyPI.
 # pmap - Parallel mapping module
