@@ -10,7 +10,7 @@ dmlab2d==1.0.0
 dks==0.1.1
 einshape==1.0
 enn==0.14
-envlogger==1.2
+envlogger==1.0.8
 gym==0.21.0
 iris==1.0.0
 jmp==0.0.4
