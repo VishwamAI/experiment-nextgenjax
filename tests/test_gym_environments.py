@@ -1,8 +1,21 @@
-import jax.numpy as jnp
-import jax.random as jrandom
-import optax
-import chex
-import haiku as hk
+import sys
+import pytest
+from typing import Sequence, Any
+
+if sys.platform != "win32":
+    import jax
+    import jax.numpy as jnp
+    import jax.random as jrandom
+    import optax
+    import chex
+    import haiku as hk
+    Shape = Sequence[int | Any]
+else:
+    jax = jnp = jrandom = optax = chex = hk = None
+    Shape = None
+
+# Custom marker for tests that require JAX
+pytestmark = pytest.mark.jax_unsupported
 
 # Gym Environment and Wrapper Tests Implementation
 

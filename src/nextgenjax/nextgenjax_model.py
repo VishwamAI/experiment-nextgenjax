@@ -40,7 +40,6 @@ print("Sonnet path:", snt.__file__)
 import mujoco
 import dm_control
 import rlax
-import envlogger  # Environment logging for RL
 import gym #openai
 # Libraries for probabilistic and Bayesian deep learning
 import distrax  # Probability distributions and transformations in JAX
@@ -68,7 +67,6 @@ import tf2jax
 import treescope
 import mctx
 import synjax
-import xmanager
 import dks
 import pysc2
 import calm
