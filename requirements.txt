@@ -39,7 +39,7 @@ tensorflow-text==2.13.0  # Updated to match tensorflow version
 tf2jax==0.3.1
 torch==1.13.1
 transformers==4.29.2
-xmanager==0.4.0
+xmanager==0.3.0  # Updated to resolve installation issue
 networkx>=2.8,<3.0
 
 # The following are custom modules and do not exist as installable packages on PyPI.
