@@ -3,7 +3,7 @@ jaxlib==0.4.31; sys_platform != "win32"
 chex==0.1.86
 distrax==0.1.5  # Updated to latest version compatible with numpy==1.24.1
 dm-control==1.0.12
-dm-haiku==0.0.10  # Updated to be compatible with JAX 0.4.31
+dm-haiku==0.0.12  # Updated to latest version compatible with JAX 0.4.31
 dm-pix==0.4.1  # Compatible version for Python 3.8
 dm-reverb==0.14.0; sys_platform != "darwin" or platform_machine != "arm64"  # Exclude for macOS arm64
 dmlab2d==1.0.0
