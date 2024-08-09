@@ -5,7 +5,7 @@ distrax==0.1.3  # Compatible version for Python < 3.9 and numpy < 1.23
 dm-control==1.0.12
 dm-haiku==0.0.9  # Compatible version for Python < 3.9 and numpy < 1.23
 dm-pix==0.4.1  # Compatible version for Python 3.8
-dm-reverb==0.14.0  # Updated version compatible with Python 3.8 and macOS arm64
+dm-reverb==0.14.0; sys_platform != "darwin" or platform_machine != "arm64"  # Exclude for macOS arm64
 dmlab2d==1.0.0
 dks==0.1.1
 einshape==0.4.2
