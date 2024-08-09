@@ -67,7 +67,6 @@ import tf2jax
 import treescope
 import mctx
 import synjax
-import xmanager
 import dks
 import pysc2
 import calm
