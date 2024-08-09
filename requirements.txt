@@ -20,7 +20,7 @@ matplotlib==3.5.3
 mathematics-dataset==1.0.1
 mctx==0.0.3
 mujoco==2.3.5
-numpy<1.23,>=1.18.0  # Aligning numpy version to be compatible with all dependencies
+numpy<1.24,>=1.22.0  # Aligning numpy version to be compatible with all dependencies
 opencv-python==4.7.0.72
 optax==0.1.3  # Compatible version for Python < 3.9 and numpy < 1.23
 pgmax==0.3.0
@@ -32,10 +32,10 @@ routellm==0.1.0
 scikit-learn==1.0.2
 scipy==1.7.3
 dm-sonnet==2.0.1  # Specifying a version compatible with Python 3.8
-tensorflow==2.12.1  # Adjusting tensorflow version to match numpy constraints
+tensorflow==2.13.1  # Updated to latest version
 tensorflow-datasets==4.9.2
 tensorflow-hub==0.13.0
-tensorflow-text==2.12.1
+tensorflow-text==2.13.1  # Updated to match tensorflow version
 tf2jax==0.3.1
 torch==1.13.1
 transformers==4.29.2
