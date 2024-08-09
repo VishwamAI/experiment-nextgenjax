@@ -28,12 +28,15 @@ jobs:
     - name: Print installed packages
       run: |
         pip list
+    - name: Set PYTHONPATH
+      run: |
+        echo "PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/src" >> $GITHUB_ENV
     - name: Print PYTHONPATH
       run: |
         echo $PYTHONPATH
     - name: Run tests
       run: |
-        PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/src pytest -v -m "not jax_unsupported"
+        pytest -v -m "not jax_unsupported"
 
   build-windows:
     runs-on: windows-latest
@@ -57,12 +60,14 @@ jobs:
     - name: Print installed packages
       run: |
         pip list
+    - name: Set PYTHONPATH
+      run: |
+        echo "PYTHONPATH=$env:PYTHONPATH;${{ github.workspace }}\src" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
     - name: Print PYTHONPATH
       run: |
-        echo %PYTHONPATH%
+        echo $env:PYTHONPATH
     - name: Run tests
       run: |
-        $env:PYTHONPATH = "$env:PYTHONPATH;${{ github.workspace }}\src"
         pytest -v -m "not jax_unsupported"
 
   build-macos:
@@ -96,9 +101,12 @@ jobs:
     - name: Print installed packages
       run: |
         pip list
+    - name: Set PYTHONPATH
+      run: |
+        echo "PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/src" >> $GITHUB_ENV
     - name: Print PYTHONPATH
       run: |
         echo $PYTHONPATH
     - name: Run tests
       run: |
-        PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/src pytest -v -m "not jax_unsupported"
+        pytest -v -m "not jax_unsupported"
