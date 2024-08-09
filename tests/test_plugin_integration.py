@@ -1,5 +1,6 @@
 import sys
 import pytest
+from typing import Sequence, Any
 print("Starting test_plugin_integration.py")
 print("Python path:", sys.path)
 
@@ -10,8 +11,10 @@ if sys.platform != "win32":
     import optax
     import chex
     import haiku as hk
+    Shape = Sequence[int | Any]
 else:
     jax = jnp = jrandom = optax = chex = hk = None
+    Shape = None
 
 # Mark all tests in this file as jax_unsupported
 pytestmark = pytest.mark.jax_unsupported

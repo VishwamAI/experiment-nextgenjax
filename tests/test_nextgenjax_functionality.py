@@ -2,7 +2,7 @@ import sys
 import pytest
 import scipy as sp
 import matplotlib.pyplot as plt
-from typing import Dict, Any
+from typing import Dict, Any, Sequence
 
 if sys.platform != "win32":
     import jax
@@ -13,8 +13,10 @@ if sys.platform != "win32":
     import optax
     import chex
     import haiku as hk
+    Shape = Sequence[int | Any]
 else:
     jax = jnp = jrandom = grad = jit = jaxlib = optax = chex = hk = None
+    Shape = None
 
 print("Starting test_nextgenjax_functionality.py")
 print("Python path:", sys.path)
