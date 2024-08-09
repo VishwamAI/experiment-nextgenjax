@@ -1,5 +1,5 @@
-jax; sys_platform != "win32"
-jaxlib; sys_platform != "win32"
+jax==0.4.6; sys_platform != "win32"
+jaxlib==0.4.6; sys_platform != "win32"
 chex==0.1.8
 distrax==0.1.3  # Compatible version for Python < 3.9 and numpy < 1.23
 dm-control==1.0.12
@@ -20,7 +20,7 @@ matplotlib==3.5.3  # Required for visualization and plotting in NextGenJax
 mathematics-dataset==1.0.1
 mctx==0.0.3
 mujoco==2.3.5
-numpy  # Removed version constraint to allow for flexible resolution
+numpy==1.22.4  # Specified version compatible with jax 0.4.6
 opencv-python==4.7.0.72
 optax==0.1.3  # Compatible version for Python < 3.9 and numpy < 1.23
 pgmax==0.3.0
@@ -30,12 +30,12 @@ pysc2==4.0.0
 rlax==0.1.5
 routellm==0.1.0
 scikit-learn==1.0.2
-scipy  # Removed version constraint to allow for flexible resolution
+scipy==1.8.1  # Specified version compatible with jax 0.4.6
 dm-sonnet==2.0.1  # Specifying a version compatible with Python 3.8
-tensorflow  # Removed version constraint to allow for flexible resolution
+tensorflow==2.12.0  # Specified version compatible with jax 0.4.6
 tensorflow-datasets==4.9.2
-tensorflow-hub==0.12.0  # Adjusted to be compatible with tensorflow 2.17.0
-tensorflow-text  # Removed version constraint to allow for flexible resolution
+tensorflow-hub==0.12.0  # Adjusted to be compatible with tensorflow 2.12.0
+tensorflow-text==2.12.1  # Specified version compatible with tensorflow 2.12.0
 tf2jax==0.3.1
 torch==1.13.1
 transformers==4.29.2
