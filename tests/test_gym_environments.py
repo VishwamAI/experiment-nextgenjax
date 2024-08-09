@@ -1,10 +1,14 @@
 import sys
 import pytest
-import jax.numpy as jnp
-import jax.random as jrandom
-import optax
-import chex
-import haiku as hk
+
+if sys.platform != "win32":
+    import jax.numpy as jnp
+    import jax.random as jrandom
+    import optax
+    import chex
+    import haiku as hk
+else:
+    jnp = jrandom = optax = chex = hk = None
 
 # Custom marker for tests that require JAX
 pytestmark = pytest.mark.jax_unsupported

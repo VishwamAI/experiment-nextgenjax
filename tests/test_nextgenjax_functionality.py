@@ -1,16 +1,20 @@
 import sys
 import pytest
-import jax
-import jax.numpy as jnp
-import jax.random as jrandom
-from jax import grad, jit
 import scipy as sp
 import matplotlib.pyplot as plt
-import jaxlib
-import optax
-import chex
-import haiku as hk
 from typing import Dict, Any
+
+if sys.platform != "win32":
+    import jax
+    import jax.numpy as jnp
+    import jax.random as jrandom
+    from jax import grad, jit
+    import jaxlib
+    import optax
+    import chex
+    import haiku as hk
+else:
+    jax = jnp = jrandom = grad = jit = jaxlib = optax = chex = hk = None
 
 print("Starting test_nextgenjax_functionality.py")
 print("Python path:", sys.path)

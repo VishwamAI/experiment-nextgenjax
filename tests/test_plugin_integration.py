@@ -3,11 +3,18 @@ import pytest
 print("Starting test_plugin_integration.py")
 print("Python path:", sys.path)
 
-import jax
-import jax.numpy as jnp
-import jax.random as jrandom
-import optax
-import chex
+if sys.platform != "win32":
+    import jax
+    import jax.numpy as jnp
+    import jax.random as jrandom
+    import optax
+    import chex
+else:
+    jax = None
+    jnp = None
+    jrandom = None
+    optax = None
+    chex = None
 
 # Mark all tests in this file as jax_unsupported
 pytestmark = pytest.mark.jax_unsupported
