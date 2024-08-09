@@ -15,8 +15,8 @@ from typing import Dict, Any
 print("Starting test_nextgenjax_functionality.py")
 print("Python path:", sys.path)
 
-# Skip all tests in this file on Windows platforms
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="JAX not supported on Windows")
+# Mark all tests in this file as jax_unsupported
+pytestmark = pytest.mark.jax_unsupported
 
 print("Importing necessary components for testing...")
 

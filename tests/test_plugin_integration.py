@@ -9,8 +9,8 @@ import jax.random as jrandom
 import optax
 import chex
 
-# Skip all tests in this file on Windows platforms
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="JAX not supported on Windows")
+# Mark all tests in this file as jax_unsupported
+pytestmark = pytest.mark.jax_unsupported
 
 print("JAX version:", jax.__version__)
 print("Attempting to import haiku...")
