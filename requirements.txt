@@ -10,7 +10,6 @@ dmlab2d==1.0.0
 dks==0.1.1
 einshape==1.0
 enn==0.14
-envlogger==1.1
 gym==0.18.0  # Reverted to 0.18.0 to resolve 'extras_require' issue
 iris==1.0.0
 jmp==0.0.4
