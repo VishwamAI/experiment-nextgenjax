@@ -9,7 +9,7 @@ dm-reverb==0.14.0; sys_platform != "darwin" or platform_machine != "arm64"  # Ex
 dmlab2d==1.0.0
 dks==0.1.1
 einshape==1.0
-enn==0.2.5
+enn==0.14
 envlogger==1.0.2
 gym==0.21.0
 iris==1.0.0
