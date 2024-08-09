@@ -10,6 +10,7 @@ dmlab2d==1.0.0
 dks==0.1.1
 einshape==1.0
 enn==0.14
+fairscale==0.4.13  # Added fairscale with the latest stable version
 gym==0.26.2  # Updated to a more recent stable version to resolve 'extras_require' issue
 iris==1.0.5
 jmp==0.0.4
