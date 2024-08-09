@@ -1,5 +1,13 @@
 import unittest
-from nextgenjax.jit.jit import jit
+from typing import Sequence, Any
+import sys
+
+if sys.platform != "win32":
+    from jax import jit
+    Shape = Sequence[int | Any]
+else:
+    jit = None
+    Shape = None
 
 class TestJitFunctionality(unittest.TestCase):
 

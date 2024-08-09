@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 import sys
 import os
+from typing import Sequence, Any
 
 # Add the project root directory to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -12,11 +13,14 @@ from nextgenjax.components.reinforcement_learning_module import ReinforcementLea
 from nextgenjax.components.building_mechanisms import BuildingMechanism
 from nextgenjax.components.benchmarks import Benchmarks
 from nextgenjax.components.three_d_preprocessing_utils import load_3d_data, normalize_3d_data, augment_3d_data, transform_3d_data
+import jax
 import jax.numpy as jnp
 import jax.random as jrandom
 import optax
 import chex
 import haiku as hk
+
+Shape = Sequence[int | Any]
 
 class Test3DFunctionalities(unittest.TestCase):
 
