@@ -11,7 +11,7 @@ dks==0.1.1
 einshape==1.0
 enn==0.14
 envlogger==1.0.8
-gym==0.21.0
+gym==0.20.0  # Changed to 0.20.0 for better compatibility with Python 3.8.10
 iris==1.0.0
 jmp==0.0.4
 jraph==0.0.6.dev0
