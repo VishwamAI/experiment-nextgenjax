@@ -32,9 +32,9 @@ routellm==0.1.0
 scikit-learn==1.0.2
 scipy==1.7.3
 dm-sonnet==2.0.1  # Specifying a version compatible with Python 3.8
-tensorflow==2.13.1  # Updated to resolve installation issue
+tensorflow==2.17.0  # Updated to resolve dependency conflict with tensorflow-text
 tensorflow-datasets==4.9.2
-tensorflow-hub==0.12.0  # Adjusted to be compatible with tensorflow 2.13.1
+tensorflow-hub==0.12.0  # Adjusted to be compatible with tensorflow 2.17.0
 tensorflow-text==2.17.0  # Updated for compatibility with GitHub Actions macOS runner
 tf2jax==0.3.1
 torch==1.13.1
