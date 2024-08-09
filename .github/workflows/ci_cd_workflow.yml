@@ -21,7 +21,7 @@ jobs:
         pip install pytest
     - name: Run tests
       run: |
-        pytest
+        PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/src pytest -m "not jax_unsupported"
 
   build-windows:
     runs-on: windows-latest
@@ -41,7 +41,8 @@ jobs:
         pip install pytest
     - name: Run tests
       run: |
-        pytest -k "not test_" -m "not jax_unsupported"
+        $env:PYTHONPATH = "$env:PYTHONPATH;${{ github.workspace }}\src"
+        pytest -m "not jax_unsupported"
 
   build-macos:
     runs-on: macos-latest
@@ -61,4 +62,4 @@ jobs:
         pip install pytest
     - name: Run tests
       run: |
-        pytest
+        PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/src pytest -m "not jax_unsupported"
