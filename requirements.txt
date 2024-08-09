@@ -10,7 +10,7 @@ dmlab2d==1.0.0
 dks==0.1.1
 einshape==1.0
 enn==0.14
-gym==0.18.0  # Reverted to 0.18.0 to resolve 'extras_require' issue
+gym==0.21.0  # Updated to resolve 'extras_require' issue and maintain compatibility
 iris==1.0.0
 jmp==0.0.4
 jraph==0.0.6.dev0
