@@ -8,7 +8,7 @@ dm-pix==0.4.1  # Compatible version for Python 3.8
 dm-reverb==0.14.0; sys_platform != "darwin" or platform_machine != "arm64"  # Exclude for macOS arm64
 dmlab2d==1.0.0
 dks==0.1.1
-einshape==0.4.2
+einshape==1.0
 enn==0.2.5
 envlogger==1.0.2
 gym==0.21.0
