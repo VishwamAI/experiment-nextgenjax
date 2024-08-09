@@ -1,8 +1,13 @@
+import sys
+import pytest
 import jax.numpy as jnp
 import jax.random as jrandom
 import optax
 import chex
 import haiku as hk
+
+# Skip all tests in this file on Windows platforms
+pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="JAX not supported on Windows")
 
 # Time-Aware Observation Wrapper Test Implementation
 

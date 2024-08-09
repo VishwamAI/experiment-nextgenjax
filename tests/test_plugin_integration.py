@@ -1,4 +1,5 @@
 import sys
+import pytest
 print("Starting test_plugin_integration.py")
 print("Python path:", sys.path)
 
@@ -7,6 +8,9 @@ import jax.numpy as jnp
 import jax.random as jrandom
 import optax
 import chex
+
+# Skip all tests in this file on Windows platforms
+pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="JAX not supported on Windows")
 
 print("JAX version:", jax.__version__)
 print("Attempting to import haiku...")
