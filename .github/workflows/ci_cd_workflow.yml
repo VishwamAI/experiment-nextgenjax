@@ -6,9 +6,9 @@ jobs:
   build-ubuntu:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.9'
     - name: Upgrade setuptools
@@ -19,6 +19,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest scipy
+    - name: Install JAX
+      run: |
+        pip install --upgrade "jax[cpu]"
     - name: Install matplotlib
       run: |
         pip install matplotlib
@@ -35,9 +38,9 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.9'
     - name: Upgrade setuptools
@@ -65,9 +68,9 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.9'
     - name: Upgrade setuptools
@@ -84,6 +87,9 @@ jobs:
       run: |
         pip install -r requirements.txt
         pip install pytest scipy
+    - name: Install JAX
+      run: |
+        pip install --upgrade "jax[cpu]"
     - name: Install matplotlib
       run: |
         pip install matplotlib
